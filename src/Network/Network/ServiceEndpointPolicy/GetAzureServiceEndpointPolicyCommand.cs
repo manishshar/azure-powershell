@@ -21,24 +21,26 @@ namespace Microsoft.Azure.Commands.Network
     using System.Collections.Generic;
     using System.Management.Automation;
 
-    [Cmdlet("Get", ResourceManager.Common.AzureRMConstants.AzureRMPrefix + "ServiceEndpointPolicy", SupportsShouldProcess = true, DefaultParameterSetName = "GetByNameParameterSet"), OutputType(typeof(PSServiceEndpointPolicy))]
+    [Cmdlet("Get", ResourceManager.Common.AzureRMConstants.AzureRMPrefix + "ServiceEndpointPolicy", SupportsShouldProcess = true, DefaultParameterSetName = "ListParameterSet"), OutputType(typeof(PSServiceEndpointPolicy))]
     public class GetAzureServiceEndpointPolicyCommand : ServiceEndpointPolicyBaseCmdlet
     {
         [Parameter(
             Mandatory = false,
-            ParameterSetName = "GetByNameParameterSet",
+            ParameterSetName = "ListParameterSet",
             HelpMessage = "The name of the service endpoint policy")]
         [ResourceNameCompleter("Microsoft.Network/serviceEndpointPolicies", "ResourceGroupName")]
         [ValidateNotNullOrEmpty]
+        [SupportsWildcards]
         public string Name { get; set; }
 
         [Parameter(
-           Mandatory = true,
+           Mandatory = false,
            ValueFromPipelineByPropertyName = true,
            HelpMessage = "The resource group name.",
-           ParameterSetName = "GetByNameParameterSet")]
+           ParameterSetName = "ListParameterSet")]
         [ResourceGroupCompleter]
         [ValidateNotNullOrEmpty]
+        [SupportsWildcards]
         public virtual string ResourceGroupName { get; set; }
 
         [Parameter(
@@ -61,7 +63,7 @@ namespace Microsoft.Azure.Commands.Network
                     this.Name = resourceIdentifier.ResourceName;
                 }
 
-                if (!string.IsNullOrEmpty(this.Name))
+                if (ShouldGetByName(ResourceGroupName, Name))
                 {
                     PSServiceEndpointPolicy serviceEndpointPolicy;
                     serviceEndpointPolicy = this.GetServiceEndpointPolicy(this.ResourceGroupName, this.Name);
@@ -70,12 +72,16 @@ namespace Microsoft.Azure.Commands.Network
                 else
                 {
                     IEnumerable<PSServiceEndpointPolicy> serviceEndpointPolicies = null;
-                    if (!string.IsNullOrEmpty(this.ResourceGroupName))
+                    if (ShouldListByResourceGroup(ResourceGroupName, Name))
                     {
                         serviceEndpointPolicies = ListServiceEndpointPolicies(this.ResourceGroupName);
                     }
+                    else
+                    {
+                        serviceEndpointPolicies = ListServiceEndpointPolicies(string.Empty);
+                    }
 
-                    WriteObject(serviceEndpointPolicies, true);
+                    WriteObject(TopLevelWildcardFilter(ResourceGroupName, Name, serviceEndpointPolicies), true);
                 }
             }
         }

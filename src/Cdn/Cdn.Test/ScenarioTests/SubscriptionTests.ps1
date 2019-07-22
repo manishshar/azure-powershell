@@ -18,10 +18,10 @@ Subscription resource usage
 #>
 function Test-SubscriptionGetResourceUsage
 {
-    $subscriptionResourceUsage = Get-AzureRmCdnSubscriptionResourceUsage
+    $subscriptionResourceUsage = Get-AzCdnSubscriptionResourceUsage
 
     Assert-True {$subscriptionResourceUsage.Count -eq 1}
-	Assert-True {$subscriptionResourceUsage[0].CurrentValue -eq 0}
+	Assert-True {$subscriptionResourceUsage[0].CurrentValue -eq 16}
 }
 
 <#
@@ -30,7 +30,7 @@ Edge node
 #>
 function Test-SubscriptionEdgeNode
 {
-    $edgeNodes = Get-AzureRmCdnEdgeNodes
+    $edgeNodes = Get-AzCdnEdgeNodes
 
     Assert-False {$edgeNodes -eq $null}
 }

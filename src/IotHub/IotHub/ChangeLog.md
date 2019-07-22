@@ -19,6 +19,15 @@
 -->
 ## Upcoming Release
 
+## Version 1.2.0
+* Add support to regenerate authorization policy keys.
+
+## Version 1.1.0
+* Updated cmdlets with plural nouns to singular, and deprecated plural names.
+
+## Version 1.0.2
+* Add Encoding format to Add-IotHubRoutingEndpoint cmdlet.
+
 ## Version 1.0.1
 * Updated to the latest version of the IotHub SDK
 

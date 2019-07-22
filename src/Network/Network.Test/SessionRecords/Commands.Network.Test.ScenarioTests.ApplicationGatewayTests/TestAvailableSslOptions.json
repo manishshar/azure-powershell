@@ -1,55 +1,55 @@
 {
   "Entries": [
     {
-      "RequestUri": "/subscriptions/5f1006f9-e71f-4023-bb9e-f1c90262eda0/providers/Microsoft.Network/applicationGatewayAvailableSslOptions/default?api-version=2018-10-01",
-      "EncodedRequestUri": "L3N1YnNjcmlwdGlvbnMvNWYxMDA2ZjktZTcxZi00MDIzLWJiOWUtZjFjOTAyNjJlZGEwL3Byb3ZpZGVycy9NaWNyb3NvZnQuTmV0d29yay9hcHBsaWNhdGlvbkdhdGV3YXlBdmFpbGFibGVTc2xPcHRpb25zL2RlZmF1bHQ/YXBpLXZlcnNpb249MjAxOC0xMC0wMQ==",
+      "RequestUri": "/subscriptions/5f1006f9-e71f-4023-bb9e-f1c90262eda0/providers/Microsoft.Network/applicationGatewayAvailableSslOptions/default?api-version=2019-04-01",
+      "EncodedRequestUri": "L3N1YnNjcmlwdGlvbnMvNWYxMDA2ZjktZTcxZi00MDIzLWJiOWUtZjFjOTAyNjJlZGEwL3Byb3ZpZGVycy9NaWNyb3NvZnQuTmV0d29yay9hcHBsaWNhdGlvbkdhdGV3YXlBdmFpbGFibGVTc2xPcHRpb25zL2RlZmF1bHQ/YXBpLXZlcnNpb249MjAxOS0wNC0wMQ==",
       "RequestMethod": "GET",
       "RequestBody": "",
       "RequestHeaders": {
         "x-ms-client-request-id": [
-          "1f2e3c11-c2e6-4434-a936-15571d61f06b"
+          "c11f70f9-9267-4638-9a46-a9aead7c3274"
         ],
         "accept-language": [
           "en-US"
         ],
         "User-Agent": [
-          "FxVersion/4.7.3190.0",
+          "FxVersion/4.6.26614.01",
           "OSName/Windows",
-          "OSVersion/6.2.9200.0",
-          "Microsoft.Azure.Management.Network.NetworkManagementClient/21.0.0.0"
+          "OSVersion/Microsoft.Windows.10.0.17763.",
+          "Microsoft.Azure.Management.Network.NetworkManagementClient/20.0.1.0"
         ]
       },
       "ResponseHeaders": {
-        "Pragma": [
+        "Cache-Control": [
           "no-cache"
         ],
-        "x-ms-request-id": [
-          "db5cc64e-ae17-4bf4-8741-dbc677bb6c21"
+        "Date": [
+          "Tue, 07 May 2019 20:47:44 GMT"
         ],
-        "x-ms-correlation-request-id": [
-          "9bf3ed34-946a-481d-9da6-3bf9c2f5cd37"
-        ],
-        "Strict-Transport-Security": [
-          "max-age=31536000; includeSubDomains"
-        ],
-        "Cache-Control": [
+        "Pragma": [
           "no-cache"
         ],
         "Server": [
           "Microsoft-HTTPAPI/2.0",
           "Microsoft-HTTPAPI/2.0"
         ],
+        "x-ms-request-id": [
+          "b05beb1c-794e-48d7-81bd-cc2225a0f218"
+        ],
+        "x-ms-correlation-request-id": [
+          "95666115-e1df-49d9-af17-492325f74db7"
+        ],
+        "Strict-Transport-Security": [
+          "max-age=31536000; includeSubDomains"
+        ],
         "x-ms-ratelimit-remaining-subscription-reads": [
           "11999"
         ],
         "x-ms-routing-request-id": [
-          "WESTUS2:20181122T101243Z:9bf3ed34-946a-481d-9da6-3bf9c2f5cd37"
+          "WESTUS2:20190507T204744Z:95666115-e1df-49d9-af17-492325f74db7"
         ],
         "X-Content-Type-Options": [
           "nosniff"
-        ],
-        "Date": [
-          "Thu, 22 Nov 2018 10:12:43 GMT"
         ],
         "Content-Length": [
           "6378"
@@ -65,55 +65,55 @@
       "StatusCode": 200
     },
     {
-      "RequestUri": "/subscriptions/5f1006f9-e71f-4023-bb9e-f1c90262eda0/providers/Microsoft.Network/applicationGatewayAvailableSslOptions/default/predefinedPolicies?api-version=2018-10-01",
-      "EncodedRequestUri": "L3N1YnNjcmlwdGlvbnMvNWYxMDA2ZjktZTcxZi00MDIzLWJiOWUtZjFjOTAyNjJlZGEwL3Byb3ZpZGVycy9NaWNyb3NvZnQuTmV0d29yay9hcHBsaWNhdGlvbkdhdGV3YXlBdmFpbGFibGVTc2xPcHRpb25zL2RlZmF1bHQvcHJlZGVmaW5lZFBvbGljaWVzP2FwaS12ZXJzaW9uPTIwMTgtMTAtMDE=",
+      "RequestUri": "/subscriptions/5f1006f9-e71f-4023-bb9e-f1c90262eda0/providers/Microsoft.Network/applicationGatewayAvailableSslOptions/default/predefinedPolicies?api-version=2019-04-01",
+      "EncodedRequestUri": "L3N1YnNjcmlwdGlvbnMvNWYxMDA2ZjktZTcxZi00MDIzLWJiOWUtZjFjOTAyNjJlZGEwL3Byb3ZpZGVycy9NaWNyb3NvZnQuTmV0d29yay9hcHBsaWNhdGlvbkdhdGV3YXlBdmFpbGFibGVTc2xPcHRpb25zL2RlZmF1bHQvcHJlZGVmaW5lZFBvbGljaWVzP2FwaS12ZXJzaW9uPTIwMTktMDQtMDE=",
       "RequestMethod": "GET",
       "RequestBody": "",
       "RequestHeaders": {
         "x-ms-client-request-id": [
-          "12649f4c-466c-42d9-9da6-f7105605ea2b"
+          "7153bf85-4e65-4c7e-80f0-0c2db563295f"
         ],
         "accept-language": [
           "en-US"
         ],
         "User-Agent": [
-          "FxVersion/4.7.3190.0",
+          "FxVersion/4.6.26614.01",
           "OSName/Windows",
-          "OSVersion/6.2.9200.0",
-          "Microsoft.Azure.Management.Network.NetworkManagementClient/21.0.0.0"
+          "OSVersion/Microsoft.Windows.10.0.17763.",
+          "Microsoft.Azure.Management.Network.NetworkManagementClient/20.0.1.0"
         ]
       },
       "ResponseHeaders": {
-        "Pragma": [
+        "Cache-Control": [
           "no-cache"
         ],
-        "x-ms-request-id": [
-          "400b034c-74a7-4b6e-b335-536a05f162f2"
+        "Date": [
+          "Tue, 07 May 2019 20:47:45 GMT"
         ],
-        "x-ms-correlation-request-id": [
-          "f2edab37-d590-4571-afba-c46afcf2c7fb"
-        ],
-        "Strict-Transport-Security": [
-          "max-age=31536000; includeSubDomains"
-        ],
-        "Cache-Control": [
+        "Pragma": [
           "no-cache"
         ],
         "Server": [
           "Microsoft-HTTPAPI/2.0",
           "Microsoft-HTTPAPI/2.0"
         ],
+        "x-ms-request-id": [
+          "ca1f4989-c092-4bb3-9704-f9a3f29e7699"
+        ],
+        "x-ms-correlation-request-id": [
+          "e74f5bdb-3ac7-4ba5-af6d-0d757bb90edb"
+        ],
+        "Strict-Transport-Security": [
+          "max-age=31536000; includeSubDomains"
+        ],
         "x-ms-ratelimit-remaining-subscription-reads": [
-          "11998"
+          "11991"
         ],
         "x-ms-routing-request-id": [
-          "WESTUS2:20181122T101243Z:f2edab37-d590-4571-afba-c46afcf2c7fb"
+          "WESTUS2:20190507T204745Z:e74f5bdb-3ac7-4ba5-af6d-0d757bb90edb"
         ],
         "X-Content-Type-Options": [
           "nosniff"
-        ],
-        "Date": [
-          "Thu, 22 Nov 2018 10:12:43 GMT"
         ],
         "Content-Length": [
           "4472"
@@ -129,55 +129,119 @@
       "StatusCode": 200
     },
     {
-      "RequestUri": "/subscriptions/5f1006f9-e71f-4023-bb9e-f1c90262eda0/providers/Microsoft.Network/applicationGatewayAvailableSslOptions/default/predefinedPolicies/AppGwSslPolicy20170401?api-version=2018-10-01",
-      "EncodedRequestUri": "L3N1YnNjcmlwdGlvbnMvNWYxMDA2ZjktZTcxZi00MDIzLWJiOWUtZjFjOTAyNjJlZGEwL3Byb3ZpZGVycy9NaWNyb3NvZnQuTmV0d29yay9hcHBsaWNhdGlvbkdhdGV3YXlBdmFpbGFibGVTc2xPcHRpb25zL2RlZmF1bHQvcHJlZGVmaW5lZFBvbGljaWVzL0FwcEd3U3NsUG9saWN5MjAxNzA0MDE/YXBpLXZlcnNpb249MjAxOC0xMC0wMQ==",
+      "RequestUri": "/subscriptions/5f1006f9-e71f-4023-bb9e-f1c90262eda0/providers/Microsoft.Network/applicationGatewayAvailableSslOptions/default/predefinedPolicies?api-version=2019-04-01",
+      "EncodedRequestUri": "L3N1YnNjcmlwdGlvbnMvNWYxMDA2ZjktZTcxZi00MDIzLWJiOWUtZjFjOTAyNjJlZGEwL3Byb3ZpZGVycy9NaWNyb3NvZnQuTmV0d29yay9hcHBsaWNhdGlvbkdhdGV3YXlBdmFpbGFibGVTc2xPcHRpb25zL2RlZmF1bHQvcHJlZGVmaW5lZFBvbGljaWVzP2FwaS12ZXJzaW9uPTIwMTktMDQtMDE=",
       "RequestMethod": "GET",
       "RequestBody": "",
       "RequestHeaders": {
         "x-ms-client-request-id": [
-          "e646d5bc-9496-444e-96bf-8cbaf22be4ad"
+          "29f4889b-5131-4655-912a-5178158d28ef"
         ],
         "accept-language": [
           "en-US"
         ],
         "User-Agent": [
-          "FxVersion/4.7.3190.0",
+          "FxVersion/4.6.26614.01",
           "OSName/Windows",
-          "OSVersion/6.2.9200.0",
-          "Microsoft.Azure.Management.Network.NetworkManagementClient/21.0.0.0"
+          "OSVersion/Microsoft.Windows.10.0.17763.",
+          "Microsoft.Azure.Management.Network.NetworkManagementClient/20.0.1.0"
         ]
       },
       "ResponseHeaders": {
-        "Pragma": [
+        "Cache-Control": [
           "no-cache"
         ],
-        "x-ms-request-id": [
-          "89342ed8-4e1b-499b-bd0c-9f1b6531cf62"
+        "Date": [
+          "Tue, 07 May 2019 20:47:45 GMT"
         ],
-        "x-ms-correlation-request-id": [
-          "1c9ca84c-69d2-48a6-a3a0-c2476a637057"
-        ],
-        "Strict-Transport-Security": [
-          "max-age=31536000; includeSubDomains"
-        ],
-        "Cache-Control": [
+        "Pragma": [
           "no-cache"
         ],
         "Server": [
           "Microsoft-HTTPAPI/2.0",
           "Microsoft-HTTPAPI/2.0"
         ],
+        "x-ms-request-id": [
+          "7721eb0c-54a9-49db-a174-72fa0c8467ac"
+        ],
+        "x-ms-correlation-request-id": [
+          "85b8c3d7-5e29-4b3d-8846-655e0a918d3b"
+        ],
+        "Strict-Transport-Security": [
+          "max-age=31536000; includeSubDomains"
+        ],
         "x-ms-ratelimit-remaining-subscription-reads": [
-          "11997"
+          "11999"
         ],
         "x-ms-routing-request-id": [
-          "WESTUS2:20181122T101244Z:1c9ca84c-69d2-48a6-a3a0-c2476a637057"
+          "WESTUS2:20190507T204746Z:85b8c3d7-5e29-4b3d-8846-655e0a918d3b"
         ],
         "X-Content-Type-Options": [
           "nosniff"
         ],
+        "Content-Length": [
+          "4472"
+        ],
+        "Content-Type": [
+          "application/json; charset=utf-8"
+        ],
+        "Expires": [
+          "-1"
+        ]
+      },
+      "ResponseBody": "{\r\n  \"value\": [\r\n    {\r\n      \"name\": \"AppGwSslPolicy20150501\",\r\n      \"id\": \"/subscriptions/5f1006f9-e71f-4023-bb9e-f1c90262eda0/resourceGroups//providers/Microsoft.Network/ApplicationGatewayAvailableSslOptions/default/ApplicationGatewaySslPredefinedPolicy/AppGwSslPolicy20150501\",\r\n      \"properties\": {\r\n        \"cipherSuites\": [\r\n          \"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384\",\r\n          \"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256\",\r\n          \"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384\",\r\n          \"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256\",\r\n          \"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA\",\r\n          \"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA\",\r\n          \"TLS_DHE_RSA_WITH_AES_256_GCM_SHA384\",\r\n          \"TLS_DHE_RSA_WITH_AES_128_GCM_SHA256\",\r\n          \"TLS_DHE_RSA_WITH_AES_256_CBC_SHA\",\r\n          \"TLS_DHE_RSA_WITH_AES_128_CBC_SHA\",\r\n          \"TLS_RSA_WITH_AES_256_GCM_SHA384\",\r\n          \"TLS_RSA_WITH_AES_128_GCM_SHA256\",\r\n          \"TLS_RSA_WITH_AES_256_CBC_SHA256\",\r\n          \"TLS_RSA_WITH_AES_128_CBC_SHA256\",\r\n          \"TLS_RSA_WITH_AES_256_CBC_SHA\",\r\n          \"TLS_RSA_WITH_AES_128_CBC_SHA\",\r\n          \"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384\",\r\n          \"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256\",\r\n          \"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384\",\r\n          \"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256\",\r\n          \"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA\",\r\n          \"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA\",\r\n          \"TLS_DHE_DSS_WITH_AES_256_CBC_SHA256\",\r\n          \"TLS_DHE_DSS_WITH_AES_128_CBC_SHA256\",\r\n          \"TLS_DHE_DSS_WITH_AES_256_CBC_SHA\",\r\n          \"TLS_DHE_DSS_WITH_AES_128_CBC_SHA\",\r\n          \"TLS_RSA_WITH_3DES_EDE_CBC_SHA\",\r\n          \"TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA\"\r\n        ],\r\n        \"minProtocolVersion\": \"TLSv1_0\"\r\n      },\r\n      \"type\": \"Microsoft.Network/ApplicationGatewayAvailableSslOptions/ApplicationGatewaySslPredefinedPolicy\"\r\n    },\r\n    {\r\n      \"name\": \"AppGwSslPolicy20170401\",\r\n      \"id\": \"/subscriptions/5f1006f9-e71f-4023-bb9e-f1c90262eda0/resourceGroups//providers/Microsoft.Network/ApplicationGatewayAvailableSslOptions/default/ApplicationGatewaySslPredefinedPolicy/AppGwSslPolicy20170401\",\r\n      \"properties\": {\r\n        \"cipherSuites\": [\r\n          \"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256\",\r\n          \"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384\",\r\n          \"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA\",\r\n          \"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA\",\r\n          \"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256\",\r\n          \"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384\",\r\n          \"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384\",\r\n          \"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256\",\r\n          \"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA\",\r\n          \"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA\",\r\n          \"TLS_RSA_WITH_AES_256_GCM_SHA384\",\r\n          \"TLS_RSA_WITH_AES_128_GCM_SHA256\",\r\n          \"TLS_RSA_WITH_AES_256_CBC_SHA256\",\r\n          \"TLS_RSA_WITH_AES_128_CBC_SHA256\",\r\n          \"TLS_RSA_WITH_AES_256_CBC_SHA\",\r\n          \"TLS_RSA_WITH_AES_128_CBC_SHA\"\r\n        ],\r\n        \"minProtocolVersion\": \"TLSv1_1\"\r\n      },\r\n      \"type\": \"Microsoft.Network/ApplicationGatewayAvailableSslOptions/ApplicationGatewaySslPredefinedPolicy\"\r\n    },\r\n    {\r\n      \"name\": \"AppGwSslPolicy20170401S\",\r\n      \"id\": \"/subscriptions/5f1006f9-e71f-4023-bb9e-f1c90262eda0/resourceGroups//providers/Microsoft.Network/ApplicationGatewayAvailableSslOptions/default/ApplicationGatewaySslPredefinedPolicy/AppGwSslPolicy20170401S\",\r\n      \"properties\": {\r\n        \"cipherSuites\": [\r\n          \"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256\",\r\n          \"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384\",\r\n          \"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA\",\r\n          \"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA\",\r\n          \"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256\",\r\n          \"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384\",\r\n          \"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384\",\r\n          \"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256\",\r\n          \"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA\",\r\n          \"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA\",\r\n          \"TLS_RSA_WITH_AES_256_GCM_SHA384\",\r\n          \"TLS_RSA_WITH_AES_128_GCM_SHA256\",\r\n          \"TLS_RSA_WITH_AES_256_CBC_SHA256\",\r\n          \"TLS_RSA_WITH_AES_128_CBC_SHA256\",\r\n          \"TLS_RSA_WITH_AES_256_CBC_SHA\",\r\n          \"TLS_RSA_WITH_AES_128_CBC_SHA\"\r\n        ],\r\n        \"minProtocolVersion\": \"TLSv1_2\"\r\n      },\r\n      \"type\": \"Microsoft.Network/ApplicationGatewayAvailableSslOptions/ApplicationGatewaySslPredefinedPolicy\"\r\n    }\r\n  ]\r\n}",
+      "StatusCode": 200
+    },
+    {
+      "RequestUri": "/subscriptions/5f1006f9-e71f-4023-bb9e-f1c90262eda0/providers/Microsoft.Network/applicationGatewayAvailableSslOptions/default/predefinedPolicies/AppGwSslPolicy20170401?api-version=2019-04-01",
+      "EncodedRequestUri": "L3N1YnNjcmlwdGlvbnMvNWYxMDA2ZjktZTcxZi00MDIzLWJiOWUtZjFjOTAyNjJlZGEwL3Byb3ZpZGVycy9NaWNyb3NvZnQuTmV0d29yay9hcHBsaWNhdGlvbkdhdGV3YXlBdmFpbGFibGVTc2xPcHRpb25zL2RlZmF1bHQvcHJlZGVmaW5lZFBvbGljaWVzL0FwcEd3U3NsUG9saWN5MjAxNzA0MDE/YXBpLXZlcnNpb249MjAxOS0wNC0wMQ==",
+      "RequestMethod": "GET",
+      "RequestBody": "",
+      "RequestHeaders": {
+        "x-ms-client-request-id": [
+          "5f5cf04e-47b8-4327-be39-66bd5079a065"
+        ],
+        "accept-language": [
+          "en-US"
+        ],
+        "User-Agent": [
+          "FxVersion/4.6.26614.01",
+          "OSName/Windows",
+          "OSVersion/Microsoft.Windows.10.0.17763.",
+          "Microsoft.Azure.Management.Network.NetworkManagementClient/20.0.1.0"
+        ]
+      },
+      "ResponseHeaders": {
+        "Cache-Control": [
+          "no-cache"
+        ],
         "Date": [
-          "Thu, 22 Nov 2018 10:12:44 GMT"
+          "Tue, 07 May 2019 20:47:45 GMT"
+        ],
+        "Pragma": [
+          "no-cache"
+        ],
+        "Server": [
+          "Microsoft-HTTPAPI/2.0",
+          "Microsoft-HTTPAPI/2.0"
+        ],
+        "x-ms-request-id": [
+          "e1efe247-3632-405b-b97d-62facdfbe51c"
+        ],
+        "x-ms-correlation-request-id": [
+          "bc90554c-a935-407b-af7f-f1aefd0bd0d2"
+        ],
+        "Strict-Transport-Security": [
+          "max-age=31536000; includeSubDomains"
+        ],
+        "x-ms-ratelimit-remaining-subscription-reads": [
+          "11999"
+        ],
+        "x-ms-routing-request-id": [
+          "WESTUS2:20190507T204745Z:bc90554c-a935-407b-af7f-f1aefd0bd0d2"
+        ],
+        "X-Content-Type-Options": [
+          "nosniff"
         ],
         "Content-Length": [
           "1181"

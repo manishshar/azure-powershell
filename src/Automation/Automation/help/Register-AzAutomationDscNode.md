@@ -1,4 +1,4 @@
-﻿---
+---
 external help file: Microsoft.Azure.PowerShell.Cmdlets.Automation.dll-Help.xml
 Module Name: Az.Automation
 ms.assetid: 73E6DF02-7171-481B-966F-DECEC122A602
@@ -23,6 +23,12 @@ Register-AzAutomationDscNode -AzureVMName <String> [-NodeConfigurationName <Stri
 
 ## DESCRIPTION
 The **Register-AzAutomationDscNode** cmdlet registers an Azure virtual machine as an APS Desired State Configuration (DSC) node in an Azure Automation account.
+
+If you need to register a node to an automation account in a different subscription,
+you will need to use an ARM template rather than cmdlets. 
+See the Azure Automation
+[documentation](https://docs.microsoft.com/en-us/azure/automation/automation-dsc-onboarding#registering-virtual-machines-across-azure-subscriptions)
+for more details.
 
 ## EXAMPLES
 

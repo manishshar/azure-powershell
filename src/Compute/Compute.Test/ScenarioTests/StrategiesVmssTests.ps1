@@ -30,7 +30,7 @@ function Test-SimpleNewVmss
         [string]$domainNameLabel = "$vmssname$vmssname".tolower();
 
         # Common
-        $x = New-AzureRmVmss -Name $vmssname -Credential $cred -DomainNameLabel $domainNameLabel -LoadBalancerName $lbName
+        $x = New-AzVmss -Name $vmssname -Credential $cred -DomainNameLabel $domainNameLabel -LoadBalancerName $lbName
 
         Assert-AreEqual $vmssname $x.Name;
         Assert-AreEqual $vmssname $x.ResourceGroupName;
@@ -45,7 +45,7 @@ function Test-SimpleNewVmss
         Assert-False { $x.SinglePlacementGroup }
         Assert-Null $x.Identity  
 
-        $lb = Get-AzureRmLoadBalancer -Name $lbName -ResourceGroupName $vmssname 
+        $lb = Get-AzLoadBalancer -Name $lbName -ResourceGroupName $vmssname 
         Assert-NotNull $lb
         Assert-AreEqual $lbName $lb.Name
     }
@@ -79,7 +79,7 @@ function Test-SimpleNewVmssFromSIGImage
         [string]$domainNameLabel = "$vmssname$vmssname".tolower();
 
         # Common
-        $x = New-AzureRmVmss -Name $vmssname -Credential $cred -DomainNameLabel $domainNameLabel -LoadBalancerName $lbName -Location "East US 2" -VmSize "Standard_D2s_v3" -ImageName "/subscriptions/9e223dbe-3399-4e19-88eb-0975f02ac87f/resourceGroups/SIGTestGroupoDoNotDelete/providers/Microsoft.Compute/galleries/SIGTestGalleryDoNotDelete/images/SIGTestImageWindowsDoNotDelete" 
+        $x = New-AzVmss -Name $vmssname -Credential $cred -DomainNameLabel $domainNameLabel -LoadBalancerName $lbName -Location "East US 2" -VmSize "Standard_D2s_v3" -ImageName "/subscriptions/9e223dbe-3399-4e19-88eb-0975f02ac87f/resourceGroups/SIGTestGroupoDoNotDelete/providers/Microsoft.Compute/galleries/SIGTestGalleryDoNotDelete/images/SIGTestImageWindowsDoNotDelete" 
 
         Assert-AreEqual $vmssname $x.Name;
         Assert-AreEqual $vmssname $x.ResourceGroupName;
@@ -95,7 +95,7 @@ function Test-SimpleNewVmssFromSIGImage
         Assert-False { $x.SinglePlacementGroup }
         Assert-Null $x.Identity  
 
-        $lb = Get-AzureRmLoadBalancer -Name $lbName -ResourceGroupName $vmssname 
+        $lb = Get-AzLoadBalancer -Name $lbName -ResourceGroupName $vmssname 
         Assert-NotNull $lb
         Assert-AreEqual $lbName $lb.Name
     }
@@ -126,14 +126,14 @@ function Test-SimpleNewVmssWithUltraSSD
         # Common
 		#As of now the ultrasd feature is only supported in east us 2 and in the size Standard_D2s_v3, on the features GA the restriction will be lifted
 		#Use the follwing command to figure out the one to use 
-		#Get-AzureRmComputeResourceSku | where {$_.ResourceType -eq "disks" -and $_.Name -eq "UltraSSD_LRS" }
-        $x = New-AzureRmVmss -Name $vmssname -Credential $cred -DomainNameLabel $domainNameLabel -LoadBalancerName $lbName -Location "east us 2" -EnableUltraSSD -Zone 3 -VmSize "Standard_D2s_v3"
+		#Get-AzComputeResourceSku | where {$_.ResourceType -eq "disks" -and $_.Name -eq "UltraSSD_LRS" }
+        $x = New-AzVmss -Name $vmssname -Credential $cred -DomainNameLabel $domainNameLabel -LoadBalancerName $lbName -Location "east us 2" -EnableUltraSSD -Zone 3 -VmSize "Standard_D2s_v3"
 
         Assert-AreEqual $vmssname $x.Name;
         Assert-AreEqual $vmssname $x.ResourceGroupName;
         Assert-AreEqual $vmssname $x.VirtualMachineProfile.NetworkProfile.NetworkInterfaceConfigurations[0].Name;
         Assert-AreEqual $vmssname $x.VirtualMachineProfile.NetworkProfile.NetworkInterfaceConfigurations[0].IpConfigurations[0].Name;
-        Assert-True { $x.VirtualMachineProfile.AdditionalCapabilities.UltraSSDEnabled };
+        Assert-True { $x.AdditionalCapabilities.UltraSSDEnabled };
         Assert-AreEqual "Standard_D2s_v3" $x.Sku.Name
         Assert-AreEqual $username $x.VirtualMachineProfile.OsProfile.AdminUsername
         Assert-AreEqual "2016-Datacenter" $x.VirtualMachineProfile.StorageProfile.ImageReference.Sku
@@ -142,7 +142,7 @@ function Test-SimpleNewVmssWithUltraSSD
         Assert-False { $x.SinglePlacementGroup }
         Assert-Null $x.Identity  
 
-        $lb = Get-AzureRmLoadBalancer -Name $lbName -ResourceGroupName $vmssname 
+        $lb = Get-AzLoadBalancer -Name $lbName -ResourceGroupName $vmssname 
         Assert-NotNull $lb
         Assert-AreEqual $lbName $lb.Name
     }
@@ -170,11 +170,11 @@ function Test-SimpleNewVmssLbErrorScenario
         $cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $username, $password
         [string]$domainNameLabel = "$vmssname$vmssname".tolower();
 
-        $x = New-AzureRmVmss -Name $vmssname -Credential $cred -DomainNameLabel $domainNameLabel
+        $x = New-AzVmss -Name $vmssname -Credential $cred -DomainNameLabel $domainNameLabel
 
         Assert-AreEqual $vmssname $x.Name;
-        $lb = Get-AzureRmLoadBalancer -Name $vmssname -ResourceGroupName $vmssname 
-        Remove-AzureRmVmss -Name $vmssname -ResourceGroupName $vmssname -Force
+        $lb = Get-AzLoadBalancer -Name $vmssname -ResourceGroupName $vmssname 
+        Remove-AzVmss -Name $vmssname -ResourceGroupName $vmssname -Force
 
         $exceptionFound = $false
         $errorMessageMatched = $false
@@ -182,7 +182,7 @@ function Test-SimpleNewVmssLbErrorScenario
         try
         {
             $newVmssName = $vmssname + "New"
-            $x = New-AzureRmVmss -Name $newVmssName -Credential $cred -DomainNameLabel $domainNameLabel -ResourceGroupName $vmssname -LoadBalancerName $lbName
+            $x = New-AzVmss -Name $newVmssName -Credential $cred -DomainNameLabel $domainNameLabel -ResourceGroupName $vmssname -LoadBalancerName $lbName
         }
         catch
         {
@@ -215,7 +215,7 @@ function Test-SimpleNewVmssWithSystemAssignedIdentity
         [string]$domainNameLabel = "$vmssname$vmssname".tolower();
 
         # Common
-        $x = New-AzureRmVmss -Name $vmssname -Credential $cred -DomainNameLabel $domainNameLabel -SystemAssignedIdentity -SinglePlacementGroup
+        $x = New-AzVmss -Name $vmssname -Credential $cred -DomainNameLabel $domainNameLabel -SystemAssignedIdentity -SinglePlacementGroup
 
         Assert-AreEqual $vmssname $x.Name;
         Assert-AreEqual $vmssname $x.ResourceGroupName;
@@ -252,22 +252,22 @@ function Test-SimpleNewVmssWithsystemAssignedUserAssignedIdentity
         [string]$domainNameLabel = "$vmssname$vmssname".tolower();
 
         # To record this test run these commands first :
-        # New-AzureRmResourceGroup -Name UAITG123456 -Location 'Central US'
-        # New-AzureRmUserAssignedIdentity -ResourceGroupName  UAITG123456 -Name UAITG123456Identity
+        # New-AzResourceGroup -Name UAITG123456 -Location 'Central US'
+        # New-AzUserAssignedIdentity -ResourceGroupName  UAITG123456 -Name UAITG123456Identity
         # 
         # Now get the identity :
         # 
-        # Get-AzureRmUserAssignedIdentity -ResourceGroupName UAITG123456 -Name UAITG123456Identity
+        # Get-AzUserAssignedIdentity -ResourceGroupName UAITG123456 -Name UAITG123456Identity
         # Note down the Id and use it in the PS code
         # $identityName = $vmname + "Identity"
-        # $newUserIdentity =  New-AzureRmUserAssignedIdentity -ResourceGroupName $vmname -Name $identityName
+        # $newUserIdentity =  New-AzUserAssignedIdentity -ResourceGroupName $vmname -Name $identityName
 
         #$newUserId = $newUserIdentity.Id
         
         $newUserId = "/subscriptions/24fb23e3-6ba3-41f0-9b6e-e41131d5d61e/resourcegroups/UAITG123456/providers/Microsoft.ManagedIdentity/userAssignedIdentities/UAITG123456Identity"
 
         # Common
-        $x = New-AzureRmVmss -Name $vmssname -Credential $cred -DomainNameLabel $domainNameLabel -UserAssignedIdentity $newUserId -SystemAssignedIdentity -SinglePlacementGroup
+        $x = New-AzVmss -Name $vmssname -Credential $cred -DomainNameLabel $domainNameLabel -UserAssignedIdentity $newUserId -SystemAssignedIdentity -SinglePlacementGroup
 
         Assert-AreEqual $vmssname $x.Name;
         Assert-AreEqual $vmssname $x.ResourceGroupName;
@@ -312,7 +312,7 @@ function Test-SimpleNewVmssImageName
         [string]$domainNameLabel = "$vmssname$vmssname".tolower();
 
         # Common
-        $x = New-AzureRmVmss `
+        $x = New-AzVmss `
             -Name $vmssname `
             -Credential $cred `
             -DomainNameLabel $domainNameLabel `
@@ -349,7 +349,7 @@ function Test-SimpleNewVmssWithoutDomainName
         $cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $username, $password
 
         # Common
-        $x = New-AzureRmVmss -Name $vmssname -Credential $cred -SinglePlacementGroup
+        $x = New-AzVmss -Name $vmssname -Credential $cred -SinglePlacementGroup
 
         Assert-AreEqual $vmssname $x.Name;
         Assert-AreEqual $vmssname $x.ResourceGroupName;
@@ -366,5 +366,41 @@ function Test-SimpleNewVmssWithoutDomainName
     {
         # Cleanup
         Clean-ResourceGroup $vmssname
+    }
+}
+
+<#
+.SYNOPSIS
+Test Simple Paremeter Set for New Vm
+#>
+function Test-SimpleNewVmssPpg
+{
+    # Setup
+    $rgname = Get-ResourceName
+
+    try
+    {
+        $vmssname = "MyVmss"
+        $ppgname = "MyPpg"
+        $lbName = $vmssname + "LoadBalancer"
+        $username = "admin01"
+        $password = Get-PasswordForVM | ConvertTo-SecureString -AsPlainText -Force
+        $cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $username, $password
+        [string]$domainNameLabel = "$vmssname$vmssname".tolower();
+
+        # Common
+        $rg = New-AzResourceGroup -Name $rgname -Location "eastus"
+        $ppg = New-AzProximityPlacementGroup `
+            -ResourceGroupName $rgname `
+            -Name $ppgname `
+            -Location "eastus"
+        $vmss = New-AzVmss -Name $vmssname -ResourceGroup $rgname -Credential $cred -DomainNameLabel $domainNameLabel -LoadBalancerName $lbName -ProximityPlacementGroup $ppgname
+
+        Assert-AreEqual $vmss.ProximityPlacementGroup.Id $ppg.Id
+    }
+    finally
+    {
+        # Cleanup
+        Clean-ResourceGroup $rgname
     }
 }

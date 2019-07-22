@@ -124,6 +124,15 @@ namespace Microsoft.Azure.Commands.Sql.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to retrieve information protection policy of tenant {0}..
+        /// </summary>
+        internal static string DataClassificationFailedToRetrieveInformationProtectionPolicy {
+            get {
+                return ResourceManager.GetString("DataClassificationFailedToRetrieveInformationProtectionPolicy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot set a lower bound which is larger than the higher bound.
         /// </summary>
         internal static string DataMaskingNumberRuleIntervalDefinitionError {
@@ -295,11 +304,29 @@ namespace Microsoft.Azure.Commands.Sql.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid format of the resource identifier..
+        /// </summary>
+        internal static string InvalidFormatResourceId {
+            get {
+                return ResourceManager.GetString("InvalidFormatResourceId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Please use Set-AzEnvironment to set a valid GraphEndpoint for the current AzureEnvironment..
         /// </summary>
         internal static string InvalidGraphEndpoint {
             get {
                 return ResourceManager.GetString("InvalidGraphEndpoint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid parameter format for keyId: &apos;{0}&apos;. It should be a well formed Azure Key Vault KeyId like: https://YourVaultName.vault.azure.net/keys/YourKeyName/01234567890123456789012345678901.
+        /// </summary>
+        internal static string InvalidKeyId {
+            get {
+                return ResourceManager.GetString("InvalidKeyId", resourceCulture);
             }
         }
         
@@ -318,6 +345,24 @@ namespace Microsoft.Azure.Commands.Sql.Properties {
         internal static string InvalidTenantId {
             get {
                 return ResourceManager.GetString("InvalidTenantId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to KeyId parameter is required for encryption protector type AzureKeyVault.
+        /// </summary>
+        internal static string KeyIdNotFoundForAzureKeyVaultEncryptionProtectorError {
+            get {
+                return ResourceManager.GetString("KeyIdNotFoundForAzureKeyVaultEncryptionProtectorError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Managed Instance Advanced Data Security is not defined. Please run Enable-AzSqlInstanceAdvancedDataSecurityPolicy first..
+        /// </summary>
+        internal static string ManagedInstanceAdvancedDataSecurityIsNotDefined {
+            get {
+                return ResourceManager.GetString("ManagedInstanceAdvancedDataSecurityIsNotDefined", resourceCulture);
             }
         }
         
@@ -700,11 +745,29 @@ namespace Microsoft.Azure.Commands.Sql.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Vulnerability assessment settings are not defined. Please run Update-AzSqlDatabaseVulnerabilityAssessmentSettings first..
+        ///   Looks up a localized string similar to Vulnerability assessment settings are not defined. Please run Update-AzSqlInstanceVulnerabilityAssessmentSettings first..
+        /// </summary>
+        internal static string RunSetManagedDatabaseVulnerabilityAssemenSettings {
+            get {
+                return ResourceManager.GetString("RunSetManagedDatabaseVulnerabilityAssemenSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vulnerability assessment settings are not defined. Please run Update-AzSqlServerVulnerabilityAssessmentSettings first..
         /// </summary>
         internal static string RunSetVulnerabilityAssemenSettings {
             get {
                 return ResourceManager.GetString("RunSetVulnerabilityAssemenSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ScanId is a required parameter for this cmdlet. Please explicitly provide it or pass the Get-AzSqlInstanceDatabaseVulnerabilityAssessmentScanRecord output via pipe..
+        /// </summary>
+        internal static string ScanIdManagedDatabaseParameterIsRequired {
+            get {
+                return ResourceManager.GetString("ScanIdManagedDatabaseParameterIsRequired", resourceCulture);
             }
         }
         
@@ -831,6 +894,15 @@ namespace Microsoft.Azure.Commands.Sql.Properties {
         internal static string SetAzureSqlInstanceDescription {
             get {
                 return ResourceManager.GetString("SetAzureSqlInstanceDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: This command sets the key &apos;{0}&apos; as the protector, removing access to this key in the future may result in data loss on this instance. Learn about best practices at aka.ms/sqltdewithbyok. Do you want to proceed?.
+        /// </summary>
+        internal static string SetAzureSqlInstanceTransparentDataEncryptionProtectorWarning {
+            get {
+                return ResourceManager.GetString("SetAzureSqlInstanceTransparentDataEncryptionProtectorWarning", resourceCulture);
             }
         }
         
@@ -1011,6 +1083,47 @@ namespace Microsoft.Azure.Commands.Sql.Properties {
         internal static string VulnerabilityAssessmentOperationIsNotAvailableOnMasterDatabase {
             get {
                 return ResourceManager.GetString("VulnerabilityAssessmentOperationIsNotAvailableOnMasterDatabase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Requested type is not supported by Vulnerability Assessment..
+        /// </summary>
+        internal static string VulnerabilityAssessmentTypeNotSupported {
+            get {
+                return ResourceManager.GetString("VulnerabilityAssessmentTypeNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrong parameter type.
+        /// </summary>
+        internal static string VulnerabilityAssessmentWrongParameterType {
+            get {
+                return ResourceManager.GetString("VulnerabilityAssessmentWrongParameterType", resourceCulture);
+            }
+        }
+  
+
+        /// <summary>
+        ///   Looks up a localized string similar to Permanently removing Instance Failover Group &apos;{0}&apos; on server &apos;{1}&apos;..
+        /// </summary>
+        internal static string RemoveAzureSqlDatabaseInstanceFailoverGroupDescription
+        {
+            get
+            {
+                return ResourceManager.GetString("RemoveAzureSqlDatabaseInstanceFailoverGroupDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Are you sure you want to remove the Azure Sql Database Instance Failover Group &apos;{0}&apos; on server &apos;{1}&apos;?.
+        /// </summary>
+        internal static string RemoveAzureSqlDatabaseInstanceFailoverGroupWarning
+        {
+            get
+            {
+                return ResourceManager.GetString("RemoveAzureSqlDatabaseInstanceFailoverGroupWarning", resourceCulture);
             }
         }
     }

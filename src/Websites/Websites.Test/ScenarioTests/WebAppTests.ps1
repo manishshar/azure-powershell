@@ -33,50 +33,50 @@ function Test-GetWebApp
 	try
 	{
 		#Setup
-		New-AzureRmResourceGroup -Name $rgname -Location $location
-		$serverFarm = New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier
+		New-AzResourceGroup -Name $rgname -Location $location
+		$serverFarm = New-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier
 		
 		# Create new web app
-		$actual = New-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName 
+		$actual = New-AzWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName 
 		
 		# Assert
 		Assert-AreEqual $wname $actual.Name
 		Assert-AreEqual $serverFarm.Id $actual.ServerFarmId
 		
 		# Get web app by name
-		$result = Get-AzureRmWebApp -Name $wname
+		$result = Get-AzWebApp -Name $wname
 
 		# Assert
 		Assert-AreEqual $wname $actual.Name
 		Assert-AreEqual $serverFarm.Id $actual.ServerFarmId
 
 		# Create new web app
-		$actual = New-AzureRmWebApp -ResourceGroupName $rgname -Name $wname2 -Location $location -AppServicePlan $whpName
+		$actual = New-AzWebApp -ResourceGroupName $rgname -Name $wname2 -Location $location -AppServicePlan $whpName
 
 		# Assert
 		Assert-AreEqual $wname2 $actual.Name
 		Assert-AreEqual $serverFarm.Id $actual.ServerFarmId
 
 		# Get web apps by subscription
-		$result = Get-AzureRmWebApp
+		$result = Get-AzWebApp
 
 		# Assert
 		Assert-True { $result.Count -ge 2 }
 
 		# Get web apps by location
-		$result = Get-AzureRmWebApp -Location $location
+		$result = Get-AzWebApp -Location $location
 		
 		# Assert
 		Assert-True { $result.Count -ge 2 }
 		
 		# Get all web apps by resource group
-		$result = Get-AzureRmWebApp -ResourceGroupName $rgname
+		$result = Get-AzWebApp -ResourceGroupName $rgname
 		
 		# Assert
 		Assert-AreEqual 2 $result.Count
 
 		# Get web apps by server farm
-		$result = Get-AzureRmWebApp -AppServicePlan $serverFarm
+		$result = Get-AzWebApp -AppServicePlan $serverFarm
 		
 		# Assert
 		Assert-True { $result.Count -ge 2 }
@@ -85,77 +85,10 @@ function Test-GetWebApp
 	finally
 	{
 		# Cleanup
-		Remove-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Force
-		Remove-AzureRmWebApp -ResourceGroupName $rgname -Name $wname2 -Force
-		Remove-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
-		Remove-AzureRmResourceGroup -Name $rgname -Force
-	}
-}
-
-<#
-.SYNOPSIS
-Tests retrieving website metrics
-#>
-function Test-GetWebAppMetrics
-{
-	# Setup
-	$rgname = Get-ResourceGroupName
-	$wname = Get-WebsiteName
-	$location = Get-WebLocation
-	$whpName = Get-WebHostPlanName
-	$tier = "Shared"
-	$apiversion = "2015-08-01"
-	$resourceType = "Microsoft.Web/sites"
-
-	try
-	{
-		#Setup
-		New-AzureRmResourceGroup -Name $rgname -Location $location
-		$serverFarm = New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier
-		
-		# Create new web app
-		$webapp = New-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName 
-		
-		# Assert
-		Assert-AreEqual $wname $webapp.Name
-		Assert-AreEqual $serverFarm.Id $webapp.ServerFarmId
-		
-		for($i = 0; $i -lt 10; $i++)
-		{
-			PingWebApp $webapp
-		}
-
-		$endTime = Get-Date
-		$startTime = $endTime.AddHours(-3)
-
-		$metricnames = @('CPU', 'Requests')
-		
-		# Get web app metrics
-		$metrics = Get-AzureRmWebAppMetrics -ResourceGroupName $rgname -Name $wname -Metrics $metricnames -StartTime $startTime -EndTime $endTime -Granularity PT1M
-
-		$actualMetricNames = $metrics | Select -Expand Name | Select -Expand Value 
-
-		foreach ($i in $metricnames)
-		{
-			Assert-True { $actualMetricNames -contains $i}
-		}
-
-		# Get web app metrics via pipeline obj
-		$metrics = $webapp | Get-AzureRmWebAppMetrics -Metrics $metricnames -StartTime $startTime -EndTime $endTime -Granularity PT1M
-
-		$actualMetricNames = $metrics | Select -Expand Name | Select -Expand Value 
-
-		foreach ($i in $metricnames)
-		{
-			Assert-True { $actualMetricNames -contains $i}
-		}
-	}
-	finally
-	{
-		# Cleanup
-		Remove-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Force
-		Remove-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
-		Remove-AzureRmResourceGroup -Name $rgname -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $wname -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $wname2 -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
+		Remove-AzResourceGroup -Name $rgname -Force
 	}
 }
 
@@ -177,48 +110,48 @@ function Test-StartStopRestartWebApp
 	try
 	{
 		#Setup
-		New-AzureRmResourceGroup -Name $rgname -Location $location
-		$serverFarm = New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier
+		New-AzResourceGroup -Name $rgname -Location $location
+		$serverFarm = New-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier
 		
 		# Create new web app
-		$webApp = New-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName 
+		$webApp = New-AzWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName 
 		
 		# Assert
 		Assert-AreEqual $wname $webApp.Name
 		Assert-AreEqual $serverFarm.Id $webApp.ServerFarmId
 		
 		# Stop web app
-		$webApp = $webApp | Stop-AzureRmWebApp
+		$webApp = $webApp | Stop-AzWebApp
 
 		Assert-AreEqual "Stopped" $webApp.State
 		$ping = PingWebApp $webApp
 
 		# Start web app
-		$webApp = $webApp | Start-AzureRmWebApp
+		$webApp = $webApp | Start-AzWebApp
 
 		Assert-AreEqual "Running" $webApp.State
 		$ping = PingWebApp $webApp
 
 		# Stop web app
-		$webApp = Stop-AzureRmWebApp -ResourceGroupName $rgname -Name $wname
+		$webApp = Stop-AzWebApp -ResourceGroupName $rgname -Name $wname
 
 		Assert-AreEqual "Stopped" $webApp.State
 		$ping = PingWebApp $webApp
 
 		# Start web app
-		$webApp = Start-AzureRmWebApp -ResourceGroupName $rgname -Name $wname
+		$webApp = Start-AzWebApp -ResourceGroupName $rgname -Name $wname
 
 		Assert-AreEqual "Running" $webApp.State
 		$ping = PingWebApp $webApp
 
 		# Retart web app
-		$webApp = Restart-AzureRmWebApp -ResourceGroupName $rgname -Name $wname
+		$webApp = Restart-AzWebApp -ResourceGroupName $rgname -Name $wname
 
 		Assert-AreEqual "Running" $webApp.State
 		$ping = PingWebApp $webApp
 
 		# Restart web app
-		$webApp = $webApp | Restart-AzureRmWebApp
+		$webApp = $webApp | Restart-AzWebApp
 
 		Assert-AreEqual "Running" $webApp.State
 		$ping = PingWebApp $webApp
@@ -226,9 +159,9 @@ function Test-StartStopRestartWebApp
 	finally
 	{
 		# Cleanup
-		Remove-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Force
-		Remove-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
-		Remove-AzureRmResourceGroup -Name $rgname -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $wname -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
+		Remove-AzResourceGroup -Name $rgname -Force
 	}
 }
 
@@ -255,34 +188,34 @@ function Test-CloneNewWebApp
 	try
 	{
 		#Setup
-		New-AzureRmResourceGroup -Name $rgname -Location $location
-		$serverFarm = New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $planName -Location  $location -Tier $tier
+		New-AzResourceGroup -Name $rgname -Location $location
+		$serverFarm = New-AzAppServicePlan -ResourceGroupName $rgname -Name  $planName -Location  $location -Tier $tier
 		
 		# Create new web app
-		$webapp = New-AzureRmWebApp -ResourceGroupName $rgname -Name $appname -Location $location -AppServicePlan $planName 
+		$webapp = New-AzWebApp -ResourceGroupName $rgname -Name $appname -Location $location -AppServicePlan $planName 
 		
 		# Assert
 		Assert-AreEqual $appname $webapp.Name
 		Assert-AreEqual $serverFarm.Id $webapp.ServerFarmId
 
 		# Get new web app
-		$webapp = Get-AzureRmWebApp -ResourceGroupName $rgname -Name $appname
+		$webapp = Get-AzWebApp -ResourceGroupName $rgname -Name $appname
 		
 		# Assert
 		Assert-AreEqual $appname $webapp.Name
 		Assert-AreEqual $serverFarm.Id $webapp.ServerFarmId
 
 		# Create new server Farm
-		$serverFarm2 = New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $destPlanName -Location  $destLocation -Tier $tier
+		$serverFarm2 = New-AzAppServicePlan -ResourceGroupName $rgname -Name  $destPlanName -Location  $destLocation -Tier $tier
 
 		# Clone web app
-		$webapp2 = New-AzureRmWebApp -ResourceGroupName $rgname -Name $destAppName -Location $destLocation -AppServicePlan $destPlanName -SourceWebApp $webapp
+		$webapp2 = New-AzWebApp -ResourceGroupName $rgname -Name $destAppName -Location $destLocation -AppServicePlan $destPlanName -SourceWebApp $webapp
 		
 		# Assert
 		Assert-AreEqual $destAppName $webapp2.Name
 
 		# Get new web app
-		$webapp2 = Get-AzureRmWebApp -ResourceGroupName $rgname -Name $destAppName
+		$webapp2 = Get-AzWebApp -ResourceGroupName $rgname -Name $destAppName
 		
 		# Assert
 		Assert-AreEqual $destAppName $webapp2.Name
@@ -290,12 +223,12 @@ function Test-CloneNewWebApp
 	finally
 	{
 		# Cleanup
-		Remove-AzureRmWebApp -ResourceGroupName $rgname -Name $appname -Force
-		Remove-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $planName -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $appname -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $planName -Force
 
-		Remove-AzureRmWebApp -ResourceGroupName $rgname -Name $destAppName -Force
-		Remove-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $destPlanName -Force
-		Remove-AzureRmResourceGroup -Name $rgname -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $destAppName -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $destPlanName -Force
+		Remove-AzResourceGroup -Name $rgname -Force
 	}
 }
 
@@ -324,25 +257,25 @@ function Test-CloneNewWebAppAndDeploymentSlots
 	try
 	{
 		#Setup
-		New-AzureRmResourceGroup -Name $rgname -Location $location
-		$serverFarm = New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $planName -Location  $location -Tier $tier
+		New-AzResourceGroup -Name $rgname -Location $location
+		$serverFarm = New-AzAppServicePlan -ResourceGroupName $rgname -Name  $planName -Location  $location -Tier $tier
 		
 		# Create new web app
-		$webapp = New-AzureRmWebApp -ResourceGroupName $rgname -Name $appname -Location $location -AppServicePlan $planName 
+		$webapp = New-AzWebApp -ResourceGroupName $rgname -Name $appname -Location $location -AppServicePlan $planName 
 		
 		# Assert
 		Assert-AreEqual $appname $webapp.Name
 		Assert-AreEqual $serverFarm.Id $webapp.ServerFarmId
 
 		# Get new web app
-		$webapp = Get-AzureRmWebApp -ResourceGroupName $rgname -Name $appname
+		$webapp = Get-AzWebApp -ResourceGroupName $rgname -Name $appname
 		
 		# Assert
 		Assert-AreEqual $appname $webapp.Name
 		Assert-AreEqual $serverFarm.Id $webapp.ServerFarmId
 
 		# Create deployment slot 1
-		$slot1 = New-AzureRmWebAppSlot -ResourceGroupName $rgname -Name $appname -Slot $slot1name -AppServicePlan $planName
+		$slot1 = New-AzWebAppSlot -ResourceGroupName $rgname -Name $appname -Slot $slot1name -AppServicePlan $planName
 		$appWithSlotName = "$appname/$slot1name"
 
 		# Assert
@@ -350,7 +283,7 @@ function Test-CloneNewWebAppAndDeploymentSlots
 		Assert-AreEqual $serverFarm.Id $slot1.ServerFarmId
 
 		# Create deployment slot 2
-		$slot2 = New-AzureRmWebAppSlot -ResourceGroupName $rgname -Name $appname -Slot $slot2name -AppServicePlan $planName
+		$slot2 = New-AzWebAppSlot -ResourceGroupName $rgname -Name $appname -Slot $slot2name -AppServicePlan $planName
 		$appWithSlotName = "$appname/$slot2name"
 
 		# Assert
@@ -358,22 +291,22 @@ function Test-CloneNewWebAppAndDeploymentSlots
 		Assert-AreEqual $serverFarm.Id $slot2.ServerFarmId
 
 		# Create new server Farm
-		$serverFarm2 = New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $destPlanName -Location  $destLocation -Tier $tier
+		$serverFarm2 = New-AzAppServicePlan -ResourceGroupName $rgname -Name  $destPlanName -Location  $destLocation -Tier $tier
 
 		# Clone web app
-		$webapp2 = New-AzureRmWebApp -ResourceGroupName $rgname -Name $destAppName -Location $destLocation -AppServicePlan $destPlanName -SourceWebApp $webapp -IncludeSourceWebAppSlots
+		$webapp2 = New-AzWebApp -ResourceGroupName $rgname -Name $destAppName -Location $destLocation -AppServicePlan $destPlanName -SourceWebApp $webapp -IncludeSourceWebAppSlots
 		
 		# Assert
 		Assert-AreEqual $destAppName $webapp2.Name
 
 		# Get new web app
-		$webapp2 = Get-AzureRmWebApp -ResourceGroupName $rgname -Name $destAppName
+		$webapp2 = Get-AzWebApp -ResourceGroupName $rgname -Name $destAppName
 		
 		# Assert
 		Assert-AreEqual $destAppName $webapp2.Name
 
 		# Get new web app slot1
-		$slot1 = Get-AzureRmWebAppSlot -ResourceGroupName $rgname -Name $destAppName -Slot $slot1name
+		$slot1 = Get-AzWebAppSlot -ResourceGroupName $rgname -Name $destAppName -Slot $slot1name
 
 		$appWithSlotName = "$destAppName/$slot1name"
 
@@ -382,7 +315,7 @@ function Test-CloneNewWebAppAndDeploymentSlots
 		Assert-AreEqual $serverFarm2.Id $slot1.ServerFarmId
 
 		# Get new web app slot1
-		$slot2 = Get-AzureRmWebAppSlot -ResourceGroupName $rgname -Name $destAppName -Slot $slot2name
+		$slot2 = Get-AzWebAppSlot -ResourceGroupName $rgname -Name $destAppName -Slot $slot2name
 		$appWithSlotName = "$destAppName/$slot2name"
 
 		# Assert
@@ -392,16 +325,16 @@ function Test-CloneNewWebAppAndDeploymentSlots
 	finally
 	{
 		# Cleanup
-		Remove-AzureRmWebAppSlot -ResourceGroupName $rgname -Name $appname -Slot $slot1name -Force
-		Remove-AzureRmWebAppSlot -ResourceGroupName $rgname -Name $appname -Slot $slot2name -Force
-		Remove-AzureRmWebApp -ResourceGroupName $rgname -Name $appname -Force
-		Remove-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $planName -Force
+		Remove-AzWebAppSlot -ResourceGroupName $rgname -Name $appname -Slot $slot1name -Force
+		Remove-AzWebAppSlot -ResourceGroupName $rgname -Name $appname -Slot $slot2name -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $appname -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $planName -Force
 
-		Remove-AzureRmWebAppSlot -ResourceGroupName $rgname -Name $destAppName -Slot $slot1name -Force
-		Remove-AzureRmWebAppSlot -ResourceGroupName $rgname -Name $destAppName -Slot $slot2name -Force
-		Remove-AzureRmWebApp -ResourceGroupName $rgname -Name $destAppName -Force
-		Remove-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $destPlanName -Force
-		Remove-AzureRmResourceGroup -Name $rgname -Force
+		Remove-AzWebAppSlot -ResourceGroupName $rgname -Name $destAppName -Slot $slot1name -Force
+		Remove-AzWebAppSlot -ResourceGroupName $rgname -Name $destAppName -Slot $slot2name -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $destAppName -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $destPlanName -Force
+		Remove-AzResourceGroup -Name $rgname -Force
 	}
 }
 
@@ -429,34 +362,34 @@ function Test-CloneNewWebAppWithTrafficManager
 	try
 	{
 		#Setup
-		New-AzureRmResourceGroup -Name $rgname -Location $location
-		$serverFarm = New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier
+		New-AzResourceGroup -Name $rgname -Location $location
+		$serverFarm = New-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier
 		
 		# Create new web app
-		$actual = New-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName 
+		$actual = New-AzWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName 
 		
 		# Assert
 		Assert-AreEqual $wname $actual.Name
 		Assert-AreEqual $serverFarm.Id $actual.ServerFarmId
 
 		# Get new web app
-		$result = Get-AzureRmWebApp -ResourceGroupName $rgname -Name $wname
+		$result = Get-AzWebApp -ResourceGroupName $rgname -Name $wname
 		
 		# Assert
 		Assert-AreEqual $wname $result.Name
 		Assert-AreEqual $serverFarm.Id $result.ServerFarmId
 
 		# Create new server Farm
-		$serverFarm = New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $destAppServicePlanName -Location  $destLocation -Tier $tier
+		$serverFarm = New-AzAppServicePlan -ResourceGroupName $rgname -Name  $destAppServicePlanName -Location  $destLocation -Tier $tier
 
 		# Clone web app
-		$actual = New-AzureRmWebApp -ResourceGroupName $rgname -Name $destWebAppName -Location $destLocation -AppServicePlan $destAppServicePlanName -SourceWebApp $result -TrafficManagerProfileName $profileName
+		$actual = New-AzWebApp -ResourceGroupName $rgname -Name $destWebAppName -Location $destLocation -AppServicePlan $destAppServicePlanName -SourceWebApp $result -TrafficManagerProfileName $profileName
 		
 		# Assert
 		Assert-AreEqual $destWebAppName $actual.Name
 
 		# Get new web app
-		$result = Get-AzureRmWebApp -ResourceGroupName $rgname -Name $destWebAppName
+		$result = Get-AzWebApp -ResourceGroupName $rgname -Name $destWebAppName
 		
 		# Assert
 		Assert-AreEqual $destWebAppName $result.Name
@@ -464,12 +397,12 @@ function Test-CloneNewWebAppWithTrafficManager
 	finally
 	{
 		# Cleanup
-		Remove-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Force
-		Remove-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $wname -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
 
-		Remove-AzureRmWebApp -ResourceGroupName $rgname -Name $destWebAppName -Force
-		Remove-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $destAppServicePlanName -Force
-		Remove-AzureRmResourceGroup -Name $rgname -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $destWebAppName -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $destAppServicePlanName -Force
+		Remove-AzResourceGroup -Name $rgname -Force
 	}
 }
 
@@ -492,11 +425,11 @@ function Test-CreateNewWebApp
 	try
 	{
 		#Setup
-		New-AzureRmResourceGroup -Name $rgname -Location $location
-		$serverFarm = New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier
+		New-AzResourceGroup -Name $rgname -Location $location
+		$serverFarm = New-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier
 		
 		# Create new web app
-		$job = New-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName -AsJob
+		$job = New-AzWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName -AsJob
 		$job | Wait-Job
 		$actual = $job | Receive-Job
 		
@@ -505,7 +438,7 @@ function Test-CreateNewWebApp
 		Assert-AreEqual $serverFarm.Id $actual.ServerFarmId
 
 		# Get new web app
-		$result = Get-AzureRmWebApp -ResourceGroupName $rgname -Name $wname
+		$result = Get-AzWebApp -ResourceGroupName $rgname -Name $wname
 		
 		# Assert
 		Assert-AreEqual $wname $result.Name
@@ -514,9 +447,9 @@ function Test-CreateNewWebApp
 	finally
 	{
 		# Cleanup
-		Remove-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Force
-		Remove-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
-		Remove-AzureRmResourceGroup -Name $rgname -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $wname -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
+		Remove-AzResourceGroup -Name $rgname -Force
 	}
 }
 
@@ -536,10 +469,10 @@ function Test-CreateNewWebAppHyperV
 	$tier = "PremiumContainer"
 	$apiversion = "2015-08-01"
 	$resourceType = "Microsoft.Web/sites"
-    $containerImageName = "testcontainer.io/paltest/iis"
-    $containerRegistryUrl = "https://testcontainer.azurecr.io"
-    $ontainerRegistryUser = "testregistry"
-    $pass = "7Dxo9p79Ins2K3ZU"
+    $containerImageName = "pstestacr.azurecr.io/tests/iis:latest"
+    $containerRegistryUrl = "https://pstestacr.azurecr.io"
+    $containerRegistryUser = "pstestacr"
+    $pass = "cYK4qnENExflnnOkBN7P+gkmBG0sqgIv"
     $containerRegistryPassword = ConvertTo-SecureString -String $pass -AsPlainText -Force
     $dockerPrefix = "DOCKER|" 
 
@@ -547,11 +480,11 @@ function Test-CreateNewWebAppHyperV
 	try
 	{
 		#Setup
-		New-AzureRmResourceGroup -Name $rgname -Location $location
-		$serverFarm = New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier -WorkerSize Small -HyperV
+		New-AzResourceGroup -Name $rgname -Location $location
+		$serverFarm = New-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier -WorkerSize Small -HyperV
 		
 		# Create new web app
-		$job = New-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName -ContainerImageName $containerImageName -ContainerRegistryUrl $containerRegistryUrl -ContainerRegistryUser $ontainerRegistryUser -ContainerRegistryPassword $containerRegistryPassword -AsJob
+		$job = New-AzWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName -ContainerImageName $containerImageName -ContainerRegistryUrl $containerRegistryUrl -ContainerRegistryUser $containerRegistryUser -ContainerRegistryPassword $containerRegistryPassword -AsJob
 		$job | Wait-Job
 		$actual = $job | Receive-Job
 		
@@ -560,7 +493,7 @@ function Test-CreateNewWebAppHyperV
 		Assert-AreEqual $serverFarm.Id $actual.ServerFarmId
 
 		# Get new web app
-		$result = Get-AzureRmWebApp -ResourceGroupName $rgname -Name $wname
+		$result = Get-AzWebApp -ResourceGroupName $rgname -Name $wname
 		
 		# Assert
 		Assert-AreEqual $wname $result.Name
@@ -570,7 +503,7 @@ function Test-CreateNewWebAppHyperV
 
         $appSettings = @{
         "DOCKER_REGISTRY_SERVER_URL" = $containerRegistryUrl;
-        "DOCKER_REGISTRY_SERVER_USERNAME" = $ontainerRegistryUser;
+        "DOCKER_REGISTRY_SERVER_USERNAME" = $containerRegistryUser;
         "DOCKER_REGISTRY_SERVER_PASSWORD" = $pass;}
 
         foreach($nvp in $webApp.SiteConfig.AppSettings)
@@ -584,9 +517,9 @@ function Test-CreateNewWebAppHyperV
 	finally
 	{
 		# Cleanup
-		Remove-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Force
-		Remove-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
-		Remove-AzureRmResourceGroup -Name $rgname -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $wname -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
+		Remove-AzResourceGroup -Name $rgname -Force
 	}
 }
 
@@ -606,20 +539,20 @@ function Test-EnableContainerContinuousDeploymentAndGetUrl
 	$tier = "PremiumContainer"
 	$apiversion = "2015-08-01"
 	$resourceType = "Microsoft.Web/sites"
-    $containerImageName = "microsoft/iis"
-    $containerRegistryUrl = "https://testcontainer.azurecr.io"
-    $ontainerRegistryUser = "testregistry"
-    $pass = "7Dxo9p79Ins2K3ZU"
+    $containerImageName = "pstestacr.azurecr.io/tests/iis:latest"
+    $containerRegistryUrl = "https://pstestacr.azurecr.io"
+    $containerRegistryUser = "pstestacr"
+    $pass = "cYK4qnENExflnnOkBN7P+gkmBG0sqgIv"
     $containerRegistryPassword = ConvertTo-SecureString -String $pass -AsPlainText -Force
     $dockerPrefix = "DOCKER|"
  	try
 	{
 		#Setup
-		New-AzureRmResourceGroup -Name $rgname -Location $location
-		$serverFarm = New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier -WorkerSize Small -HyperV
+		New-AzResourceGroup -Name $rgname -Location $location
+		$serverFarm = New-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier -WorkerSize Small -HyperV
 
 		# Create new web app
-		$job = New-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName -ContainerImageName $containerImageName -ContainerRegistryUrl $containerRegistryUrl -ContainerRegistryUser $ontainerRegistryUser -ContainerRegistryPassword $containerRegistryPassword -EnableContainerContinuousDeployment -AsJob
+		$job = New-AzWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName -ContainerImageName $containerImageName -ContainerRegistryUrl $containerRegistryUrl -ContainerRegistryUser $containerRegistryUser -ContainerRegistryPassword $containerRegistryPassword -EnableContainerContinuousDeployment -AsJob
 		$job | Wait-Job
 		$actual = $job | Receive-Job
 		
@@ -627,7 +560,7 @@ function Test-EnableContainerContinuousDeploymentAndGetUrl
 		Assert-AreEqual $wname $actual.Name
 		Assert-AreEqual $serverFarm.Id $actual.ServerFarmId
  		# Get new web app
-		$result = Get-AzureRmWebApp -ResourceGroupName $rgname -Name $wname
+		$result = Get-AzWebApp -ResourceGroupName $rgname -Name $wname
 
 		# Assert
 		Assert-AreEqual $wname $result.Name
@@ -636,7 +569,7 @@ function Test-EnableContainerContinuousDeploymentAndGetUrl
         Assert-AreEqual ($dockerPrefix + $containerImageName)  $result.SiteConfig.WindowsFxVersion
          $appSettings = @{
         "DOCKER_REGISTRY_SERVER_URL" = $containerRegistryUrl;
-        "DOCKER_REGISTRY_SERVER_USERNAME" = $ontainerRegistryUser;
+        "DOCKER_REGISTRY_SERVER_USERNAME" = $containerRegistryUser;
         "DOCKER_REGISTRY_SERVER_PASSWORD" = $pass;
         "DOCKER_ENABLE_CI" = "true"}
          foreach($nvp in $webApp.SiteConfig.AppSettings)
@@ -645,7 +578,7 @@ function Test-EnableContainerContinuousDeploymentAndGetUrl
 			Assert-True { $appSettings[$nvp.Name] -match $nvp.Value }
 		}
 
-         $ci_url = Get-AzureRmWebAppContainerContinuousDeploymentUrl -ResourceGroupName $rgname -Name $wname
+         $ci_url = Get-AzWebAppContainerContinuousDeploymentUrl -ResourceGroupName $rgname -Name $wname
 
 		 $expression = "https://" + $wname + ":(.*)@" + $wname + ".scm.azurewebsites.net/docker/hook"
 		 $sanitizedCiUrl = { $ci_url -replace '$','' }
@@ -657,9 +590,9 @@ function Test-EnableContainerContinuousDeploymentAndGetUrl
 	finally
 	{
 		# Cleanup
-		Remove-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Force
-		Remove-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
-		Remove-AzureRmResourceGroup -Name $rgname -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $wname -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
+		Remove-AzResourceGroup -Name $rgname -Force
 	}
 }
 
@@ -692,15 +625,15 @@ function Test-WindowsContainerCanIssueWebAppPSSession
 		Write-Debug "Creating app service plan..."
 
 		#Setup
-		New-AzureRmResourceGroup -Name $rgname -Location $location
-		$serverFarm = New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier -WorkerSize Large -HyperV
+		New-AzResourceGroup -Name $rgname -Location $location
+		$serverFarm = New-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier -WorkerSize Large -HyperV
 
 		Write-Debug "App service plan created"
 
 		Write-Debug "Creating web app plan..."
 
 		# Create new web app
-		$job = New-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName -ContainerImageName $containerImageName -ContainerRegistryUrl $containerRegistryUrl -ContainerRegistryUser $containerRegistryUser -ContainerRegistryPassword $containerRegistryPassword -AsJob
+		$job = New-AzWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName -ContainerImageName $containerImageName -ContainerRegistryUrl $containerRegistryUrl -ContainerRegistryUser $containerRegistryUser -ContainerRegistryPassword $containerRegistryPassword -AsJob
 		$job | Wait-Job
 		$actual = $job | Receive-Job
 		
@@ -710,7 +643,7 @@ function Test-WindowsContainerCanIssueWebAppPSSession
 		Assert-AreEqual $wname $actual.Name
 		Assert-AreEqual $serverFarm.Id $actual.ServerFarmId
  		# Get new web app
-		$result = Get-AzureRmWebApp -ResourceGroupName $rgname -Name $wname
+		$result = Get-AzWebApp -ResourceGroupName $rgname -Name $wname
 
 		Write-Debug "Webapp retrieved"
 
@@ -746,23 +679,22 @@ function Test-WindowsContainerCanIssueWebAppPSSession
 
 		# Adding Appsetting: enabling WinRM
 		$actualAppSettings["CONTAINER_WINRM_ENABLED"] = "1"
-        $webApp = Set-AzureRmWebApp -ResourceGroupName $rgname -Name $wName -AppSettings $actualAppSettings
+        $webApp = Set-AzWebApp -ResourceGroupName $rgname -Name $wName -AppSettings $actualAppSettings
 
 		# Validating that the client can at least issue the EnterPsSession command.
 		# This will validate that this cmdlet will run succesfully in Cloud Shell.
-		# If the current PsVersion is 5.1 or less (Windows PowerShell) and the current WSMAN settings will not allow the user
+		# If the current Operating System is Windows and the current WSMAN settings will not allow the user
 		# to connect (for example: invalid Trusted Hosts, Basic Auth not enabled) this command will issue a Warning instructing the user
 		# to fix WSMAN settings. It will not attempt to run EnterPsSession.
 		#
-		# If the current version is 6.0 (PowerShell Core) this command will not attempt to validate WSMAN settings and 
-		# just try to run EnterPsSession. EnterPsSession is available in Cloud Shell
+		# If the current is not Windows, this command will not attempt to validate WSMAN settings and 
+		# just try to run EnterPsSession if the current PsCore version is 6.1.0.0 or subsequent. EnterPsSession using WinRM is available in Cloud Shell
 		#
-		# We need an real Windows Container app running to fully validate the returned PsSession object, which is not 
+		# We need a real Windows Container app running to fully validate the returned PsSession object, which is not 
 		# possible in 'Playback' mode.
 		#
-		# This assert at least verifies that the EnterPsSession command is attempted and that the behavior is the expected in
-		# Windows PowerShell and PowerShell Core.
-		New-AzureRmWebAppContainerPSSession -ResourceGroupName $rgname -Name $wname -WarningVariable wv -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -Force
+		# This assert at least verifies that the EnterPsSession command is attempted and that the behavior is the expected
+		New-AzWebAppContainerPSSession -ResourceGroupName $rgname -Name $wname -WarningVariable wv -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -Force
 		
 
 		if ((Get-WebsitesTestMode) -ne 'Playback') 
@@ -774,12 +706,28 @@ function Test-WindowsContainerCanIssueWebAppPSSession
 		}
 		else
 		{
-			# Two possible messages in Playback mode since the site will not exist.
+			# Three possible error messages in Playback mode.
 			$messageDNS = "Connecting to remote server $wname.azurewebsites.net failed with the following error message : The WinRM client cannot process the request because the server name cannot be resolved"
 			$messageUnavailable = "Connecting to remote server $wname.azurewebsites.net failed with the following error message : The WinRM client sent a request to an HTTP server and got a response saying the requested HTTP URL was not available."
-			$resultError = ($Error[0] -like "*$($messageDNS)*") -or ($Error[0] -like "*$($messageUnavailable)*")
-			Write-Debug "Expected Message 1: $messageDNS"
-			Write-Debug "Expected Message 2: $messageUnavailable"
+			$messagePsVersionNotSupported = "Remote Powershell sessions into Windows Containers on App Service from this version of PowerShell is not supported.";
+
+			# One possible warning message in Playback mode.
+			$messageWSMANNotConfigured = "Your current WSMAN Trusted Hosts settings will prevent you from connecting to your Container Web App";
+
+			$resultError = ($Error[0] -like "*$($messageDNS)*") -or 
+				($Error[0] -like "*$($messageUnavailable)*") -or 
+				($Error[0] -like "*$($messageWSMANNotConfigured)*") -or
+				($Error[0] -like "*$($messagePsVersionNotSupported)*")
+			
+			$resultWarning = ($wv[0] -like "*$($messageWSMANNotConfigured)*")
+
+			Write-Debug "Expected error message 1: $messageDNS"
+			Write-Debug "Expected error message 2: $messageUnavailable"
+			Write-Debug "Expected error message 3: $messagePsVersionNotSupported"
+			
+			Write-Debug "Expected Warning message 1: $messageWSMANNotConfigured"
+
+
 		}
 		
 		Write-Debug "Error: $Error[0]"
@@ -796,19 +744,19 @@ function Test-WindowsContainerCanIssueWebAppPSSession
 		}
 
 		
-		If(!$resultError)
+		If(!$resultError -or !$resultWarning)
 		{
 			Write-Output "expected error $($message), actual error $($Error[0])"
 			Write-Output "Warnings: $wv"
 		}
-		Assert-True {$resultError}
+		Assert-True {$resultError -or $resultWarning}
  	}
 	finally
 	{
 		# Cleanup
-		Remove-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Force
-		Remove-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
-		Remove-AzureRmResourceGroup -Name $rgname -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $wname -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
+		Remove-AzResourceGroup -Name $rgname -Force
 	}
 }
 
@@ -841,15 +789,15 @@ function Test-WindowsContainerWebAppPSSessionOpened
 		Write-Debug "Creating app service plan..."
 
 		#Setup
-		New-AzureRmResourceGroup -Name $rgname -Location $location
-		$serverFarm = New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier -WorkerSize Large -HyperV
+		New-AzResourceGroup -Name $rgname -Location $location
+		$serverFarm = New-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier -WorkerSize Large -HyperV
 
 		Write-Debug "App service plan created"
 
 		Write-Debug "Creating web app plan..."
 
 		# Create new web app
-		$job = New-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName -ContainerImageName $containerImageName -ContainerRegistryUrl $containerRegistryUrl -ContainerRegistryUser $containerRegistryUser -ContainerRegistryPassword $containerRegistryPassword -AsJob
+		$job = New-AzWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName -ContainerImageName $containerImageName -ContainerRegistryUrl $containerRegistryUrl -ContainerRegistryUser $containerRegistryUser -ContainerRegistryPassword $containerRegistryPassword -AsJob
 		$job | Wait-Job
 		$actual = $job | Receive-Job
 		
@@ -859,7 +807,7 @@ function Test-WindowsContainerWebAppPSSessionOpened
 		Assert-AreEqual $wname $actual.Name
 		Assert-AreEqual $serverFarm.Id $actual.ServerFarmId
  		# Get new web app
-		$result = Get-AzureRmWebApp -ResourceGroupName $rgname -Name $wname
+		$result = Get-AzWebApp -ResourceGroupName $rgname -Name $wname
 
 		Write-Debug "Webapp retrieved"
 
@@ -895,7 +843,7 @@ function Test-WindowsContainerWebAppPSSessionOpened
 
 		# Adding Appsetting: enabling WinRM
 		$actualAppSettings["CONTAINER_WINRM_ENABLED"] = "1"
-        $webApp = Set-AzureRmWebApp -ResourceGroupName $rgname -Name $wName -AppSettings $actualAppSettings
+        $webApp = Set-AzWebApp -ResourceGroupName $rgname -Name $wName -AppSettings $actualAppSettings
 
 		$status = PingWebApp($webApp)
 		Write-Debug "Just pinged the web app"
@@ -917,7 +865,7 @@ function Test-WindowsContainerWebAppPSSessionOpened
 		# Asserting status of the last ping to the web app
 		Assert-AreEqual $status "200"
 
-		$ps_session = New-AzureRmWebAppContainerPSSession -ResourceGroupName $rgname -Name $wname -Force
+		$ps_session = New-AzWebAppContainerPSSession -ResourceGroupName $rgname -Name $wname -Force
 
 		Write-Debug "After PSSession"
 
@@ -927,9 +875,9 @@ function Test-WindowsContainerWebAppPSSessionOpened
 	finally
 	{
 		# Cleanup
-		Remove-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Force
-		Remove-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
-		Remove-AzureRmResourceGroup -Name $rgname -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $wname -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
+		Remove-AzResourceGroup -Name $rgname -Force
 	}
 }
 
@@ -949,10 +897,10 @@ function Test-SetAzureStorageWebAppHyperV
 	$tier = "PremiumContainer"
 	$apiversion = "2015-08-01"
 	$resourceType = "Microsoft.Web/sites"
-    $containerImageName = "testcontainer.io/test/iis"
-    $containerRegistryUrl = "https://testcontainer.azurecr.io"
-    $ontainerRegistryUser = "testregistry"
-    $pass = "7Dxo9p79Ins2K3ZU"
+    $containerImageName = "pstestacr.azurecr.io/tests/iis:latest"
+    $containerRegistryUrl = "https://pstestacr.azurecr.io"
+    $containerRegistryUser = "pstestacr"
+    $pass = "cYK4qnENExflnnOkBN7P+gkmBG0sqgIv"
     $containerRegistryPassword = ConvertTo-SecureString -String $pass -AsPlainText -Force
     $dockerPrefix = "DOCKER|" 
 	$azureStorageAccountCustomId1 = "mystorageaccount"
@@ -971,11 +919,11 @@ function Test-SetAzureStorageWebAppHyperV
 	try
 	{
 		#Setup
-		New-AzureRmResourceGroup -Name $rgname -Location $location
-		$serverFarm = New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier -WorkerSize Small -HyperV
+		New-AzResourceGroup -Name $rgname -Location $location
+		$serverFarm = New-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier -WorkerSize Small -HyperV
 		
 		# Create new web app
-		$job = New-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName -ContainerImageName $containerImageName -ContainerRegistryUrl $containerRegistryUrl -ContainerRegistryUser $ontainerRegistryUser -ContainerRegistryPassword $containerRegistryPassword -AsJob
+		$job = New-AzWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName -ContainerImageName $containerImageName -ContainerRegistryUrl $containerRegistryUrl -ContainerRegistryUser $containerRegistryUser -ContainerRegistryPassword $containerRegistryPassword -AsJob
 		$job | Wait-Job
 		$actual = $job | Receive-Job
 		
@@ -984,7 +932,7 @@ function Test-SetAzureStorageWebAppHyperV
 		Assert-AreEqual $serverFarm.Id $actual.ServerFarmId
 
 		# Get new web app
-		$result = Get-AzureRmWebApp -ResourceGroupName $rgname -Name $wname
+		$result = Get-AzWebApp -ResourceGroupName $rgname -Name $wname
 		
 		# Assert
 		Assert-AreEqual $wname $result.Name
@@ -992,8 +940,8 @@ function Test-SetAzureStorageWebAppHyperV
         Assert-AreEqual $true $result.IsXenon
         Assert-AreEqual ($dockerPrefix + $containerImageName)  $result.SiteConfig.WindowsFxVersion
 
-		$testStorageAccount1 = New-AzureRmWebAppAzureStoragePath -Name $azureStorageAccountCustomId1 -Type $azureStorageAccountType1 -AccountName $azureStorageAccountName1 -ShareName $azureStorageAccountShareName1 -AccessKey $azureStorageAccountAccessKey1 -MountPath $azureStorageAccountMountPath1
-		$testStorageAccount2 = New-AzureRmWebAppAzureStoragePath -Name $azureStorageAccountCustomId2 -Type $azureStorageAccountType2 -AccountName $azureStorageAccountName2 -ShareName $azureStorageAccountShareName2 -AccessKey $azureStorageAccountAccessKey2 -MountPath $azureStorageAccountMountPath2
+		$testStorageAccount1 = New-AzWebAppAzureStoragePath -Name $azureStorageAccountCustomId1 -Type $azureStorageAccountType1 -AccountName $azureStorageAccountName1 -ShareName $azureStorageAccountShareName1 -AccessKey $azureStorageAccountAccessKey1 -MountPath $azureStorageAccountMountPath1
+		$testStorageAccount2 = New-AzWebAppAzureStoragePath -Name $azureStorageAccountCustomId2 -Type $azureStorageAccountType2 -AccountName $azureStorageAccountName2 -ShareName $azureStorageAccountShareName2 -AccessKey $azureStorageAccountAccessKey2 -MountPath $azureStorageAccountMountPath2
 
 		Write-Debug "Created the new storage account paths"
 
@@ -1002,13 +950,13 @@ function Test-SetAzureStorageWebAppHyperV
 
 
 		# set Azure Storage accounts
-        $webApp = Set-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -AzureStoragePath $testStorageAccount1, $testStorageAccount2
+        $webApp = Set-AzWebApp -ResourceGroupName $rgname -Name $wname -AzureStoragePath $testStorageAccount1, $testStorageAccount2
 
 		Write-Debug "Set the new storage account paths"
 
 
 		# get the web app
-		$result = Get-AzureRmWebApp -ResourceGroupName $rgname -Name $wname
+		$result = Get-AzWebApp -ResourceGroupName $rgname -Name $wname
 		$azureStorageAccounts = $result.AzureStoragePath
 
 		# Assert
@@ -1051,9 +999,9 @@ function Test-SetAzureStorageWebAppHyperV
 	finally
 	{
 		# Cleanup
-		Remove-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Force
-		Remove-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
-		Remove-AzureRmResourceGroup -Name $rgname -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $wname -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
+		Remove-AzResourceGroup -Name $rgname -Force
 	}
 }
 
@@ -1066,19 +1014,19 @@ function Test-CreateNewWebAppOnAse
 	# Setup
 	# Creating and provisioning an ASE currently takes 30 mins to an hour, hence this test requires that the ASE & ASP are already created 
 	# before creating the app on the ASE
-	$rgname = "appdemorg"
+	$rgname = "mnresourcegroup"
 	$wname = Get-WebsiteName
-	$location = "West US"
-	$whpName = "travelproductionplan"
-	$aseName = "asedemops"
+	$location = "South Central US"
+	$whpName = "powershellasp"
+	$aseName = "mnASE"
 	$resourceType = "Microsoft.Web/sites"
 	try
 	{
 		#Setup
-		$serverFarm = Get-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName
+		$serverFarm = Get-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName
 
 		# Create new web app
-		$job = New-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName -AseName $aseName -AsJob
+		$job = New-AzWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName -AseName $aseName -AsJob
 		$job | Wait-Job
 		$actual = $job | Receive-Job
 		
@@ -1087,7 +1035,7 @@ function Test-CreateNewWebAppOnAse
 		Assert-AreEqual $serverFarm.Id $actual.ServerFarmId
 
 		# Get new web app
-		$result = Get-AzureRmWebApp -ResourceGroupName $rgname -Name $wname
+		$result = Get-AzWebApp -ResourceGroupName $rgname -Name $wname
 		
 		# Assert
 		Assert-AreEqual $wname $result.Name
@@ -1096,7 +1044,7 @@ function Test-CreateNewWebAppOnAse
 	finally
 	{
 		# Cleanup
-		Remove-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $wname -Force
 	}
 }
 
@@ -1123,12 +1071,12 @@ function Test-SetWebApp
 	try
 	{
 		#Setup
-		New-AzureRmResourceGroup -Name $rgname -Location $location
-		$serverFarm1 = New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $appServicePlanName1 -Location  $location -Tier $tier1
-		$serverFarm2 = New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $appServicePlanName2 -Location  $location -Tier $tier2
+		New-AzResourceGroup -Name $rgname -Location $location
+		$serverFarm1 = New-AzAppServicePlan -ResourceGroupName $rgname -Name  $appServicePlanName1 -Location  $location -Tier $tier1
+		$serverFarm2 = New-AzAppServicePlan -ResourceGroupName $rgname -Name  $appServicePlanName2 -Location  $location -Tier $tier2
 		
 		# Create new web app
-		$webApp = New-AzureRmWebApp -ResourceGroupName $rgname -Name $webAppName -Location $location -AppServicePlan $appServicePlanName1 
+		$webApp = New-AzWebApp -ResourceGroupName $rgname -Name $webAppName -Location $location -AppServicePlan $appServicePlanName1 
 		Write-Debug "DEBUG: Created the Web App"
 
 		# Assert
@@ -1138,7 +1086,7 @@ function Test-SetWebApp
 		Assert-NotNull $webApp.SiteConfig.phpVersion
 		
 		# Change service plan & set site properties
-		$job = Set-AzureRmWebApp -ResourceGroupName $rgname -Name $webAppName -AppServicePlan $appServicePlanName2 -HttpsOnly $true -AsJob
+		$job = Set-AzWebApp -ResourceGroupName $rgname -Name $webAppName -AppServicePlan $appServicePlanName2 -HttpsOnly $true -AsJob
 		$job | Wait-Job
 		$webApp = $job | Receive-Job
 
@@ -1154,7 +1102,7 @@ function Test-SetWebApp
 		$webapp.SiteConfig.RequestTracingEnabled = $true
 
 		# Set site properties
-		$webApp = $webApp | Set-AzureRmWebApp
+		$webApp = $webApp | Set-AzWebApp
 
 		Write-Debug "DEBUG: Changed site properties"
 
@@ -1168,7 +1116,7 @@ function Test-SetWebApp
 		$connectionStrings = @{ connstring1 = @{ Type="MySql"; Value="string value 1"}; connstring2 = @{ Type = "SQLAzure"; Value="string value 2"}}
 
         # set app settings and assign Identity
-        $webApp = Set-AzureRmWebApp -ResourceGroupName $rgname -Name $webAppName -AppSettings $appSettings -AssignIdentity $true
+        $webApp = Set-AzWebApp -ResourceGroupName $rgname -Name $webAppName -AppSettings $appSettings -AssignIdentity $true
 
         # Assert
         Assert-NotNull  $webApp.Identity
@@ -1177,7 +1125,7 @@ function Test-SetWebApp
         Assert-NotNull  $webApp.Identity
 
         # set app settings and connection strings
-		$webApp = Set-AzureRmWebApp -ResourceGroupName $rgname -Name $webAppName -AppSettings $appSettings -ConnectionStrings $connectionStrings -NumberofWorkers $capacity -PhpVersion "off"
+		$webApp = Set-AzWebApp -ResourceGroupName $rgname -Name $webAppName -AppSettings $appSettings -ConnectionStrings $connectionStrings -NumberofWorkers $capacity -PhpVersion "off"
 
 		# Assert
 		Assert-AreEqual $webAppName $webApp.Name
@@ -1199,10 +1147,10 @@ function Test-SetWebApp
 	finally
 	{
 		# Cleanup
-		Remove-AzureRmWebApp -ResourceGroupName $rgname -Name $webAppName -Force
-		Remove-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $appServicePlanName1 -Force
-		Remove-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $appServicePlanName2 -Force
-		Remove-AzureRmResourceGroup -Name $rgname -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $webAppName -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $appServicePlanName1 -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $appServicePlanName2 -Force
+		Remove-AzResourceGroup -Name $rgname -Force
 	}
 }
 
@@ -1226,32 +1174,32 @@ function Test-RemoveWebApp
 	try
 	{
 		#Setup
-		New-AzureRmResourceGroup -Name $rgname -Location $location
-		$serverFarm = New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $planName -Location  $location -Tier $tier
+		New-AzResourceGroup -Name $rgname -Location $location
+		$serverFarm = New-AzAppServicePlan -ResourceGroupName $rgname -Name  $planName -Location  $location -Tier $tier
 		
 		# Create new web app
-		$webapp = New-AzureRmWebApp -ResourceGroupName $rgname -Name $appName -Location $location -AppServicePlan $planName
+		$webapp = New-AzWebApp -ResourceGroupName $rgname -Name $appName -Location $location -AppServicePlan $planName
 		
 		# Assert
 		Assert-AreEqual $appName $webapp.Name
 		Assert-AreEqual $serverFarm.Id $webapp.ServerFarmId
 
 		# Remove web app via pipeline obj
-		$webapp | Remove-AzureRmWebApp -Force -AsJob | Wait-Job
+		$webapp | Remove-AzWebApp -Force -AsJob | Wait-Job
 
 		# Retrieve web app by name
 		# TODO: Temporarily changed the call below to use parentheses around the Get,
 		# since an issue exists currently that causes the test to fail.
 		# https://github.com/Azure/azure-powershell/issues/5174
-		$webappNames = (Get-AzureRmWebApp -ResourceGroupName $rgname) | Select -Property Name
+		$webappNames = (Get-AzWebApp -ResourceGroupName $rgname) | Select -Property Name
 
 		Assert-False { $webappNames -contains $appName }
 	}
 	finally
 	{
 		# Cleanup
-		Remove-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $planName -Force
-		Remove-AzureRmResourceGroup -Name $rgname -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $planName -Force
+		Remove-AzResourceGroup -Name $rgname -Force
 	}
 }
 
@@ -1274,18 +1222,18 @@ function Test-WebAppPublishingProfile
 	try
 	{
 		#Setup
-		New-AzureRmResourceGroup -Name $rgname -Location $location
-		$serverFarm = New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $planName -Location  $location -Tier $tier
+		New-AzResourceGroup -Name $rgname -Location $location
+		$serverFarm = New-AzAppServicePlan -ResourceGroupName $rgname -Name  $planName -Location  $location -Tier $tier
 		
 		# Create new web app
-		$webapp = New-AzureRmWebApp -ResourceGroupName $rgname -Name $appName -Location $location -AppServicePlan $planName 
+		$webapp = New-AzWebApp -ResourceGroupName $rgname -Name $appName -Location $location -AppServicePlan $planName 
 		
 		# Assert
 		Assert-AreEqual $appName $webapp.Name
 		Assert-AreEqual $serverFarm.Id $webapp.ServerFarmId
 
 		# Get web app publishing profile
-		[xml]$profile = Get-AzureRmWebAppPublishingProfile -ResourceGroupName $rgname -Name $appName -OutputFile $profileFileName
+		[xml]$profile = Get-AzWebAppPublishingProfile -ResourceGroupName $rgname -Name $appName -OutputFile $profileFileName
 		$msDeployProfile = $profile.publishData.publishProfile | ? { $_.publishMethod -eq 'MSDeploy' } | Select -First 1
 		$pass = $msDeployProfile.userPWD
 
@@ -1293,20 +1241,20 @@ function Test-WebAppPublishingProfile
 		Assert-True { $msDeployProfile.msdeploySite -eq $appName }
 
 		# Reset web app publishing profile
-		$newPass = $webapp | Reset-AzureRmWebAppPublishingProfile 
+		$newPass = $webapp | Reset-AzWebAppPublishingProfile 
 
 		# Assert
 		Assert-False { $pass -eq $newPass }
 
 		# Get web app publishing profile
-		[xml]$profile = $webapp | Get-AzureRmWebAppPublishingProfile -OutputFile $profileFileName -Format FileZilla3
+		[xml]$profile = $webapp | Get-AzWebAppPublishingProfile -OutputFile $profileFileName -Format FileZilla3
 		$fileZillaProfile = $profile.FileZilla3.Servers.Server
 
 		# Assert
 		Assert-True { $fileZillaProfile.Name -eq $appName }
 
 		# Get web app publishing profile without OutputFile
-		[xml]$profile = Get-AzureRmWebAppPublishingProfile -ResourceGroupName $rgname -Name $appName
+		[xml]$profile = Get-AzWebAppPublishingProfile -ResourceGroupName $rgname -Name $appName
 
 		# Assert
 		Assert-NotNull $profile
@@ -1315,8 +1263,68 @@ function Test-WebAppPublishingProfile
 	finally
 	{
 		# Cleanup
-		Remove-AzureRmWebApp -ResourceGroupName $rgname -Name $appName -Force
-		Remove-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $planName -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $appName -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $planName -Force
+		Remove-AzResourceGroup -Name $rgname -Force
+	}
+}
+
+function Test-PublishAzureWebAppFromZip
+{
+	# Setup
+	$rgname = Get-ResourceGroupName
+	$appName = Get-WebsiteName
+	$location = Get-WebLocation
+	$planName = Get-WebHostPlanName
+	$tier = "Shared"
+
+	try
+	{
+		#Setup
+		New-AzureRmResourceGroup -Name $rgname -Location $location
+		$serverFarm = New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $planName -Location  $location -Tier $tier
+		
+		# Create new web app
+		$webapp = New-AzureRmWebApp -ResourceGroupName $rgname -Name $appName -Location $location -AppServicePlan $planName 
+		
+		$zipPath = Join-Path $ResourcesPath "nodejs-sample.zip"
+		$publishedApp = Publish-AzWebApp -ResourceGroupName $rgname -Name $appName -ArchivePath $zipPath -Force
+
+		Assert-NotNull $publishedApp
+	}
+	finally
+	{
+		# Cleanup
+		Remove-AzureRmResourceGroup -Name $rgname -Force
+	}
+}
+
+function Test-PublishAzureWebAppFromWar
+{
+	# Setup
+	$rgname = Get-ResourceGroupName
+	$appName = Get-WebsiteName
+	$location = Get-WebLocation
+	$planName = Get-WebHostPlanName
+	$tier = "Shared"
+
+	try
+	{
+		#Setup
+		New-AzureRmResourceGroup -Name $rgname -Location $location
+		$serverFarm = New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $planName -Location  $location -Tier $tier
+		
+		# Create new web app
+		$webapp = New-AzureRmWebApp -ResourceGroupName $rgname -Name $appName -Location $location -AppServicePlan $planName 
+		
+		$warPath = Join-Path $ResourcesPath "HelloJava.war"
+		$publishedApp = Publish-AzWebApp -ResourceGroupName $rgname -Name $appName -ArchivePath $warPath -Force
+
+		Assert-NotNull $publishedApp
+	}
+	finally
+	{
+		# Cleanup
 		Remove-AzureRmResourceGroup -Name $rgname -Force
 	}
 }
@@ -1330,12 +1338,42 @@ function Test-CreateNewWebAppSimple
 	$appName = Get-WebsiteName
 	try
 	{
-		$webapp = New-AzureRmWebApp -Name $appName
+		$webapp = New-AzWebApp -Name $appName
 
 		Assert-AreEqual $appName $webapp.Name
 	}
 	finally
 	{
-		Remove-AzureRmResourceGroup $appName
+		Remove-AzResourceGroup $appName
 	}
+}
+
+<#
+.SYNOPSIS
+Tests Tags are not overridden when calling Set-AzWebApp commandlet
+#>
+function Test-TagsNotRemovedBySetWebApp
+{
+	$rgname = "lketmtestantps10"
+	$appname = "lketmtestantps10"
+	$slot = "testslot"
+
+	$getApp =  Get-AzWebApp -ResourceGroupName $rgname -Name $appname
+	$getSlot = Get-AzWebAppSlot -ResourceGroupName $rgname -Name $appname -Slot $slot
+	Assert-notNull $getApp.Tags
+	Assert-notNull $getSlot.Tags
+
+	# Test - tags not removed after Set-AzWebApp
+	$webApp = Set-AzWebApp -ResourceGroupName $rgname -Name $appname -HttpsOnly $true
+	$slot = Set-AzWebAppSlot -ResourceGroupName $rgname -Name $appname -Slot $slot -HttpsOnly $true
+
+	Assert-AreEqual $true $webApp.HttpsOnly
+	Assert-AreEqual $true $slot.HttpsOnly
+
+	Assert-notNull $webApp.Tags
+	Assert-notNull $slot.Tags
+
+	# Test - tags not removed after using Set-AzWebApp with WebApp parameter
+	$webapp =  Set-AzWebApp  -WebApp $getApp
+	Assert-notNull $webApp.Tags
 }

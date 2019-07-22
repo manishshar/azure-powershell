@@ -28,13 +28,20 @@ function Test-CrudApiManagement {
     $secondAdminEmail = "second.apim@powershell.org"
     $secondSku = "Basic"
     $secondSkuCapacity = 2
+	$enableTls=@{"Tls10" = "True"}
+	$enable3DES=@{"TripleDes168" = "True"}
+	$thirdApiManagementName = Get-ApiManagementServiceName
+	$thirdSku = "Consumption"
+	$thirdServiceLocation = "West Europe"
 
     try {
         # Create Resource Group
-        New-AzureRmResourceGroup -Name $resourceGroupName -Location $location
+        New-AzResourceGroup -Name $resourceGroupName -Location $location
         
+		# enable TLS and 3DES CipherSuite
+		$sslSetting = New-AzApiManagementSslSetting -FrontendProtocol $enableTls -CipherSuite $enable3DES
         # Create API Management service
-        $result = New-AzureRmApiManagement -ResourceGroupName $resourceGroupName -Location $location -Name $apiManagementName -Organization $organization -AdminEmail $adminEmail
+        $result = New-AzApiManagement -ResourceGroupName $resourceGroupName -Location $location -Name $apiManagementName -Organization $organization -AdminEmail $adminEmail -SslSetting $sslSetting
 
         Assert-AreEqual $resourceGroupName $result.ResourceGroupName
         Assert-AreEqual $apiManagementName $result.Name
@@ -42,17 +49,20 @@ function Test-CrudApiManagement {
         Assert-AreEqual "Developer" $result.Sku
         Assert-AreEqual 1 $result.Capacity
         Assert-AreEqual "None" $result.VpnType
+		Assert-NotNull $result.SslSetting
+		Assert-AreEqual "True" $result.SslSetting.FrontendProtocol["Tls10"]
+		Assert-AreEqual "True" $result.SslSetting.CipherSuite["TripleDes168"]
 
         # Get SSO token
-        $token = Get-AzureRmApiManagementSsoToken -ResourceGroupName $resourceGroupName -Name $apiManagementName
+        $token = Get-AzApiManagementSsoToken -ResourceGroupName $resourceGroupName -Name $apiManagementName
         Assert-NotNull $token
 
         # List services within the resource group
-        $apimServicesInGroup = Get-AzureRmApiManagement -ResourceGroupName $resourceGroupName
+        $apimServicesInGroup = Get-AzApiManagement -ResourceGroupName $resourceGroupName
         Assert-True {$apimServicesInGroup.Count -ge 1}
         
         #Create Second Service
-        $secondResult = New-AzureRmApiManagement -ResourceGroupName $resourceGroupName -Location $location -Name $secondApiManagementName -Organization $secondOrganization -AdminEmail $secondAdminEmail -Sku $secondSku -Capacity $secondSkuCapacity
+        $secondResult = New-AzApiManagement -ResourceGroupName $resourceGroupName -Location $location -Name $secondApiManagementName -Organization $secondOrganization -AdminEmail $secondAdminEmail -Sku $secondSku -Capacity $secondSkuCapacity
         Assert-AreEqual $resourceGroupName $secondResult.ResourceGroupName
         Assert-AreEqual $secondApiManagementName $secondResult.Name
         Assert-AreEqual $location $secondResult.Location
@@ -60,13 +70,24 @@ function Test-CrudApiManagement {
         Assert-AreEqual $secondSkuCapacity $secondResult.Capacity
 
         # Get SSO token
-        $secondToken = Get-AzureRmApiManagementSsoToken -ResourceGroupName $resourceGroupName -Name $secondApiManagementName
+        $secondToken = Get-AzApiManagementSsoToken -ResourceGroupName $resourceGroupName -Name $secondApiManagementName
         Assert-NotNull $secondToken
 
         # List all services
-        $allServices = Get-AzureRmApiManagement
+        $allServices = Get-AzApiManagement
         Assert-True {$allServices.Count -ge 2}
-        
+				
+        #Create Third Service of Consumption SKU
+        $thirdResult = New-AzApiManagement -ResourceGroupName $resourceGroupName -Location $thirdServiceLocation -Name $thirdApiManagementName -Organization $secondOrganization -AdminEmail $secondAdminEmail -Sku $thirdSku
+        Assert-AreEqual $resourceGroupName $thirdResult.ResourceGroupName
+        Assert-AreEqual $thirdApiManagementName $thirdResult.Name
+        Assert-AreEqual $thirdServiceLocation $thirdResult.Location
+        Assert-AreEqual $thirdSku $thirdResult.Sku
+
+		# List all services
+        $allServices = Get-AzApiManagement
+        Assert-True {$allServices.Count -ge 3}
+		        
         $found = 0
         for ($i = 0; $i -lt $allServices.Count; $i++) {
             if ($allServices[$i].Name -eq $apiManagementName) {
@@ -86,13 +107,21 @@ function Test-CrudApiManagement {
                 Assert-AreEqual $secondSku $allServices[$i].Sku
                 Assert-AreEqual $secondSkuCapacity $allServices[$i].Capacity
             }
+			
+            if ($allServices[$i].Name -eq $thirdApiManagementName) {
+                $found = $found + 1
+                Assert-AreEqual $thirdServiceLocation $allServices[$i].Location
+                Assert-AreEqual $resourceGroupName $allServices[$i].ResourceGroupName
+        
+                Assert-AreEqual $thirdSku $allServices[$i].Sku
+            }
         }
-        Assert-True {$found -eq 2} "Api Management services created earlier is not found."
+        Assert-True {$found -eq 3} "Api Management services created earlier is not found."
         
         # Delete listed services in the ResourceGroup
-        Get-AzureRmApiManagement -ResourceGroupName $resourceGroupName | Remove-AzureRmApiManagement
+        Get-AzApiManagement -ResourceGroupName $resourceGroupName | Remove-AzApiManagement
 
-        $allServices = Get-AzureRmApiManagement -ResourceGroupName $resourceGroupName
+        $allServices = Get-AzApiManagement -ResourceGroupName $resourceGroupName
         Assert-AreEqual 0 $allServices.Count
     }
     finally {
@@ -119,21 +148,21 @@ function Test-BackupRestoreApiManagement {
 
     
     try {
-        New-AzureRmResourceGroup -Name $resourceGroupName -Location $location -Force
+        New-AzResourceGroup -Name $resourceGroupName -Location $location -Force
 
         # Create storage account    
-        New-AzureRmStorageAccount -StorageAccountName $storageAccountName -Location $storageLocation -ResourceGroupName $resourceGroupName -Type Standard_LRS
-        $storageKey = (Get-AzureRmStorageAccountKey -ResourceGroupName $resourceGroupName -StorageAccountName $storageAccountName).Key1
-        $storageContext = New-AzureStorageContext -StorageAccountName $storageAccountName -StorageAccountKey $storageKey
+        New-AzStorageAccount -StorageAccountName $storageAccountName -Location $storageLocation -ResourceGroupName $resourceGroupName -Type Standard_LRS
+        $storageKey = (Get-AzStorageAccountKey -ResourceGroupName $resourceGroupName -StorageAccountName $storageAccountName).Key1
+        $storageContext = New-AzStorageContext -StorageAccountName $storageAccountName -StorageAccountKey $storageKey
         
         # Create API Management service
-        $apiManagementService = New-AzureRmApiManagement -ResourceGroupName $resourceGroupName -Location $location -Name $apiManagementName -Organization $organization -AdminEmail $adminEmail
+        $apiManagementService = New-AzApiManagement -ResourceGroupName $resourceGroupName -Location $location -Name $apiManagementName -Organization $organization -AdminEmail $adminEmail
 
         # Backup API Management service
-        Backup-AzureRmApiManagement -ResourceGroupName $resourceGroupName -Name $apiManagementName -StorageContext $storageContext -TargetContainerName $containerName -TargetBlobName $backupName
+        Backup-AzApiManagement -ResourceGroupName $resourceGroupName -Name $apiManagementName -StorageContext $storageContext -TargetContainerName $containerName -TargetBlobName $backupName
 
         # Restore API Management service
-        $restoreResult = Restore-AzureRmApiManagement -ResourceGroupName $resourceGroupName -Name $apiManagementName -StorageContext $storageContext -SourceContainerName $containerName -SourceBlobName $backupName -PassThru
+        $restoreResult = Restore-AzApiManagement -ResourceGroupName $resourceGroupName -Name $apiManagementName -StorageContext $storageContext -SourceContainerName $containerName -SourceBlobName $backupName -PassThru
 
         Assert-AreEqual $resourceGroupName $restoreResult.ResourceGroupName
         Assert-AreEqual $apiManagementName $restoreResult.Name
@@ -168,13 +197,13 @@ function Test-ApiManagementVirtualNetworkCRUD {
  
     try {
         # Create Resource Group
-        New-AzureRmResourceGroup -Name $resourceGroupName -Location $primarylocation
+        New-AzResourceGroup -Name $resourceGroupName -Location $primarylocation
  
         # Create a Virtual Network Object
-        $virtualNetwork = New-AzureRmApiManagementVirtualNetwork -SubnetResourceId $primarySubnetResourceId
+        $virtualNetwork = New-AzApiManagementVirtualNetwork -SubnetResourceId $primarySubnetResourceId
          
         # Create API Management service in External VNET
-        $result = New-AzureRmApiManagement -ResourceGroupName $resourceGroupName -Location $primarylocation -Name $apiManagementName -Organization $organization -AdminEmail $adminEmail -VpnType $vpnType -VirtualNetwork $virtualNetwork -Sku $sku -Capacity $capacity
+        $result = New-AzApiManagement -ResourceGroupName $resourceGroupName -Location $primarylocation -Name $apiManagementName -Organization $organization -AdminEmail $adminEmail -VpnType $vpnType -VirtualNetwork $virtualNetwork -Sku $sku -Capacity $capacity
  
         Assert-AreEqual $resourceGroupName $result.ResourceGroupName
         Assert-AreEqual $apiManagementName $result.Name
@@ -186,8 +215,13 @@ function Test-ApiManagementVirtualNetworkCRUD {
         Assert-NotNull $result.PublicIPAddresses
         Assert-AreEqual $primarySubnetResourceId $result.VirtualNetwork.SubnetResourceId
 
+		$networkStatus = Get-AzApiManagementNetworkStatus -ResourceGroupName $resourceGroupName -Name $apiManagementName
+        Assert-NotNull $networkStatus
+		Assert-NotNull $networkStatus.DnsServers
+		Assert-NotNull $networkStatus.ConnectivityStatus
+
         # Get the service and switch to internal Virtual Network
-        $service = Get-AzureRmApiManagement -ResourceGroupName $resourceGroupName -Name $apiManagementName
+        $service = Get-AzApiManagement -ResourceGroupName $resourceGroupName -Name $apiManagementName
         $vpnType = "Internal"
         $service.VirtualNetwork = $virtualNetwork
         $service.VpnType = $vpnType
@@ -196,11 +230,11 @@ function Test-ApiManagementVirtualNetworkCRUD {
         $service.Sku = $sku
         
         # Create Virtual Network Object for Additional region
-        $additionalRegionVirtualNetwork = New-AzureRmApiManagementVirtualNetwork -SubnetResourceId $additionalSubnetResourceId
+        $additionalRegionVirtualNetwork = New-AzApiManagementVirtualNetwork -SubnetResourceId $additionalSubnetResourceId
 
-        $service = Add-AzureRmApiManagementRegion -ApiManagement $service -Location $secondarylocation -VirtualNetwork $additionalRegionVirtualNetwork
+        $service = Add-AzApiManagementRegion -ApiManagement $service -Location $secondarylocation -VirtualNetwork $additionalRegionVirtualNetwork
         # Update the Deployment into Internal Virtual Network
-        $service = Set-AzureRmApiManagement -InputObject $service -PassThru
+        $service = Set-AzApiManagement -InputObject $service -PassThru
 
         Assert-AreEqual $resourceGroupName $service.ResourceGroupName
         Assert-AreEqual $apiManagementName $service.Name
@@ -230,6 +264,13 @@ function Test-ApiManagementVirtualNetworkCRUD {
         }
         
         Assert-True {$found -eq 1} "Api Management regions created earlier is not found."
+
+		# check the network status for the service.
+		$networkStatus = Get-AzApiManagementNetworkStatus -ApiManagementObject $service
+        Assert-NotNull $networkStatus
+		Assert-NotNull $networkStatus.DnsServers
+		Assert-NotNull $networkStatus.ConnectivityStatus
+
     }
     finally {
         # Cleanup
@@ -263,18 +304,18 @@ function Test-ApiManagementHostnamesCRUD {
     
     try {
         # Create resource group    
-        New-AzureRmResourceGroup -Name $resourceGroupName -Location $location
+        New-AzResourceGroup -Name $resourceGroupName -Location $location
 
         #Create Custom Hostname configuration
         $securePfxPassword = ConvertTo-SecureString $certPassword -AsPlainText -Force
-        $customProxy1 = New-AzureRmApiManagementCustomHostnameConfiguration -Hostname $proxyHostName1 -HostnameType Proxy -PfxPath $certFilePath -PfxPassword $securePfxPassword -DefaultSslBinding
-        $customProxy2 = New-AzureRmApiManagementCustomHostnameConfiguration -Hostname $proxyHostName2 -HostnameType Proxy -PfxPath $certFilePath -PfxPassword $securePfxPassword
-        $customPortal = New-AzureRmApiManagementCustomHostnameConfiguration -Hostname $portalHostName -HostnameType Portal -PfxPath $certFilePath -PfxPassword $securePfxPassword
-        $customMgmt = New-AzureRmApiManagementCustomHostnameConfiguration -Hostname $managementHostName -HostnameType Management -PfxPath $certFilePath -PfxPassword $securePfxPassword
+        $customProxy1 = New-AzApiManagementCustomHostnameConfiguration -Hostname $proxyHostName1 -HostnameType Proxy -PfxPath $certFilePath -PfxPassword $securePfxPassword -DefaultSslBinding
+        $customProxy2 = New-AzApiManagementCustomHostnameConfiguration -Hostname $proxyHostName2 -HostnameType Proxy -PfxPath $certFilePath -PfxPassword $securePfxPassword
+        $customPortal = New-AzApiManagementCustomHostnameConfiguration -Hostname $portalHostName -HostnameType Portal -PfxPath $certFilePath -PfxPassword $securePfxPassword
+        $customMgmt = New-AzApiManagementCustomHostnameConfiguration -Hostname $managementHostName -HostnameType Management -PfxPath $certFilePath -PfxPassword $securePfxPassword
         $customHostnames = @($customProxy1, $customProxy2, $customPortal, $customMgmt)
 
         # Create API Management service
-        $result = New-AzureRmApiManagement -ResourceGroupName $resourceGroupName -Location $location -Name $apiManagementName -Organization $organization -AdminEmail $adminEmail -Sku $sku -Capacity $capacity -CustomHostnameConfiguration $customHostnames
+        $result = New-AzApiManagement -ResourceGroupName $resourceGroupName -Location $location -Name $apiManagementName -Organization $organization -AdminEmail $adminEmail -Sku $sku -Capacity $capacity -CustomHostnameConfiguration $customHostnames
 
         Assert-AreEqual $resourceGroupName $result.ResourceGroupName
         Assert-AreEqual $apiManagementName $result.Name
@@ -285,7 +326,7 @@ function Test-ApiManagementHostnamesCRUD {
         
         #validate the Proxy Custom Hostname configuration
         Assert-NotNull $result.ProxyCustomHostnameConfiguration
-        Assert-AreEqual 2 $result.ProxyCustomHostnameConfiguration.Count
+        Assert-AreEqual 3 $result.ProxyCustomHostnameConfiguration.Count
         for ($i = 0; $i -lt $result.ProxyCustomHostnameConfiguration.Count; $i++) {
             if ($result.ProxyCustomHostnameConfiguration[$i].Hostname -eq $proxyHostName1) {
                 $found = $found + 1
@@ -328,11 +369,11 @@ function Test-ApiManagementHostnamesCRUD {
 
         # add a system certificate
         $certificateStoreLocation = "CertificateAuthority"
-        $systemCert = New-AzureRmApiManagementSystemCertificate -StoreName $certificateStoreLocation -PfxPath $certFilePath -PfxPassword $securePfxPassword
+        $systemCert = New-AzApiManagementSystemCertificate -StoreName $certificateStoreLocation -PfxPath $certFilePath -PfxPassword $securePfxPassword
         $result.SystemCertificates = @($systemCert)
         
         # apply the new configuration
-        $result = Set-AzureRmApiManagement -InputObject $result -PassThru 
+        $result = Set-AzApiManagement -InputObject $result -PassThru 
 
         Assert-AreEqual $resourceGroupName $result.ResourceGroupName
         Assert-AreEqual $apiManagementName $result.Name
@@ -343,7 +384,7 @@ function Test-ApiManagementHostnamesCRUD {
         
         #validate the Proxy Custom Hostname configuration
         Assert-NotNull $result.ProxyCustomHostnameConfiguration
-        Assert-AreEqual 1 $result.ProxyCustomHostnameConfiguration.Count
+        Assert-AreEqual 2 $result.ProxyCustomHostnameConfiguration.Count
         for ($i = 0; $i -lt $result.ProxyCustomHostnameConfiguration.Count; $i++) {
             if ($result.ProxyCustomHostnameConfiguration[$i].Hostname -eq $proxyHostName1) {
                 $found = $found + 1
@@ -392,14 +433,14 @@ function Test-ApiManagementWithAdditionalRegionsCRUD {
 		
     try {
         # Create Resource Group
-        New-AzureRmResourceGroup -Name $resourceGroupName -Location $location
+        New-AzResourceGroup -Name $resourceGroupName -Location $location
 		
-        $firstAdditionalRegion = New-AzureRmApiManagementRegion -Location $firstAdditionalRegionLocation
-        $secondAdditionalRegion = New-AzureRmApiManagementRegion -Location $secondAdditionalRegionLocation
+        $firstAdditionalRegion = New-AzApiManagementRegion -Location $firstAdditionalRegionLocation
+        $secondAdditionalRegion = New-AzApiManagementRegion -Location $secondAdditionalRegionLocation
         $regions = @($firstAdditionalRegion, $secondAdditionalRegion)
         
         # Create API Management service
-        $result = New-AzureRmApiManagement -ResourceGroupName $resourceGroupName -Location $location -Name $apiManagementName -Organization $organization -AdminEmail $adminEmail -Sku $sku -Capacity $capacity -AdditionalRegions $regions
+        $result = New-AzApiManagement -ResourceGroupName $resourceGroupName -Location $location -Name $apiManagementName -Organization $organization -AdminEmail $adminEmail -Sku $sku -Capacity $capacity -AdditionalRegions $regions
 
         Assert-AreEqual $resourceGroupName $result.ResourceGroupName
         Assert-AreEqual $apiManagementName $result.Name
@@ -427,12 +468,12 @@ function Test-ApiManagementWithAdditionalRegionsCRUD {
 
         #remove the first additional region and scale up second additional region
         $newAdditionalRegionCapacity = 2
-        $apimService = Get-AzureRmApiManagement -ResourceGroupName $resourceGroupName -Name $apiManagementName
-        $apimService = Remove-AzureRmApiManagementRegion -ApiManagement $apimService -Location $firstAdditionalRegionLocation
-        $apimService = Update-AzureRmApiManagementRegion -ApiManagement $apimService -Location $secondAdditionalRegionLocation -Capacity $newAdditionalRegionCapacity -Sku $sku
+        $apimService = Get-AzApiManagement -ResourceGroupName $resourceGroupName -Name $apiManagementName
+        $apimService = Remove-AzApiManagementRegion -ApiManagement $apimService -Location $firstAdditionalRegionLocation
+        $apimService = Update-AzApiManagementRegion -ApiManagement $apimService -Location $secondAdditionalRegionLocation -Capacity $newAdditionalRegionCapacity -Sku $sku
 
         # Set the ApiManagement service and Enable Msi idenity on the service
-        $updatedService = Set-AzureRmApiManagement -InputObject $apimService -AssignIdentity -PassThru
+        $updatedService = Set-AzApiManagement -InputObject $apimService -AssignIdentity -PassThru
         Assert-AreEqual $resourceGroupName $updatedService.ResourceGroupName
         Assert-AreEqual $apiManagementName $updatedService.Name
         Assert-AreEqual $location $updatedService.Location
@@ -483,13 +524,13 @@ function Test-CrudApiManagementWithExternalVpn {
 
     try {
         # Create Resource Group
-        New-AzureRmResourceGroup -Name $resourceGroupName -Location $location
+        New-AzResourceGroup -Name $resourceGroupName -Location $location
 
         # Create a Virtual Network Object
-        $virtualNetwork = New-AzureRmApiManagementVirtualNetwork -Location $location -SubnetResourceId $subnetResourceId
+        $virtualNetwork = New-AzApiManagementVirtualNetwork -Location $location -SubnetResourceId $subnetResourceId
         
         # Create API Management service
-        $result = New-AzureRmApiManagement -ResourceGroupName $resourceGroupName -Location $location -Name $apiManagementName -Organization $organization -AdminEmail $adminEmail -VpnType $vpnType -VirtualNetwork $virtualNetwork -Sku $sku -Capacity $capacity
+        $result = New-AzApiManagement -ResourceGroupName $resourceGroupName -Location $location -Name $apiManagementName -Organization $organization -AdminEmail $adminEmail -VpnType $vpnType -VirtualNetwork $virtualNetwork -Sku $sku -Capacity $capacity
 
         Assert-AreEqual $resourceGroupName $result.ResourceGroupName
         Assert-AreEqual $apiManagementName $result.Name
@@ -500,9 +541,9 @@ function Test-CrudApiManagementWithExternalVpn {
         Assert-AreEqual $subnetResourceId $result.VirtualNetwork.SubnetResourceId
 
         # Delete listed services in the ResourceGroup
-        Get-AzureRmApiManagement -ResourceGroupName $resourceGroupName | Remove-AzureRmApiManagement
+        Get-AzApiManagement -ResourceGroupName $resourceGroupName | Remove-AzApiManagement
 
-        $allServices = Get-AzureRmApiManagement -ResourceGroupName $resourceGroupName
+        $allServices = Get-AzApiManagement -ResourceGroupName $resourceGroupName
         Assert-AreEqual 0 $allServices.Count
     }
     finally {

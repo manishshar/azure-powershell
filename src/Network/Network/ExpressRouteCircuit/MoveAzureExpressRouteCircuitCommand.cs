@@ -21,9 +21,11 @@ using MNM = Microsoft.Azure.Management.Network.Models;
 
 namespace Microsoft.Azure.Commands.Network
 {
+    using Microsoft.WindowsAzure.Commands.Common.CustomAttributes;
     using ResourceManager.Common.ArgumentCompleters;
     using System.Collections;
 
+    [CmdletOutputBreakingChange(typeof(PSExpressRouteCircuit), DeprecatedOutputProperties = new[] { "AllowGlobalReach" })]
     [Cmdlet("Move", ResourceManager.Common.AzureRMConstants.AzureRMPrefix + "ExpressRouteCircuit", SupportsShouldProcess = true),OutputType(typeof(PSExpressRouteCircuit))]
     public class MoveAzureExpressRouteCircuitCommand : ExpressRouteCircuitBaseCmdlet
     {
@@ -67,7 +69,7 @@ namespace Microsoft.Azure.Commands.Network
 
         [Parameter(
             Mandatory = false,
-            HelpMessage = "Do not ask for confirmation if you want to overrite a resource")]
+            HelpMessage = "Do not ask for confirmation if you want to overwrite a resource")]
         public SwitchParameter Force { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Run cmdlet in the background")]

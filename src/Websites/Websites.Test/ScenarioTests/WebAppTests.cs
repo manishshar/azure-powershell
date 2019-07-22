@@ -73,18 +73,11 @@ namespace Microsoft.Azure.Commands.Websites.Test.ScenarioTests
             WebsitesController.NewInstance.RunPsTest(_logger, "Test-CreateNewWebAppSimple");
         }
 
-        [Fact(Skip = "Needs investigation. Fails running playback")]
+        [Fact]
         [Trait(Category.AcceptanceType, Category.CheckIn)]
         public void TestGetWebApp()
         {
             WebsitesController.NewInstance.RunPsTest(_logger, "Test-GetWebApp");
-        }
-
-        [Fact(Skip = "Needs investigation. Fails running playback")]
-        [Trait(Category.AcceptanceType, Category.CheckIn)]
-        public void TestGetWebAppMetrics()
-        {
-            WebsitesController.NewInstance.RunPsTest(_logger, "Test-GetWebAppMetrics");
         }
 
         [Fact]
@@ -95,13 +88,27 @@ namespace Microsoft.Azure.Commands.Websites.Test.ScenarioTests
         }
 
         [Fact]
+        [Trait(Category.RunType, Category.LiveOnly)]
+        public void TestPublishWebAppFromZip()
+        {
+            WebsitesController.NewInstance.RunPsTest(_logger, "Test-PublishAzureWebAppFromZip");
+        }
+
+        [Fact]
+        [Trait(Category.RunType, Category.LiveOnly)]
+        public void TestPublishWebAppFromWar()
+        {
+            WebsitesController.NewInstance.RunPsTest(_logger, "Test-PublishAzureWebAppFromWar");
+        }
+
+        [Fact]
         [Trait(Category.AcceptanceType, Category.CheckIn)]
         public void TestCloneNewWebApp()
         {
             WebsitesController.NewInstance.RunPsTest(_logger, "Test-CloneNewWebApp");
         }
 
-        [Fact(Skip = "Test is being skipped until issue with cloning is resolved. See GitHub issue #3770 for more information.")]
+        [Fact]
         [Trait(Category.AcceptanceType, Category.CheckIn)]
         public void TestCloneNewWebAppAndDeploymentSlots()
         {
@@ -137,7 +144,7 @@ namespace Microsoft.Azure.Commands.Websites.Test.ScenarioTests
             WebsitesController.NewInstance.RunPsTest(_logger, "Test-RemoveWebApp");
         }
 
-        [Fact(Skip = "Skipping while investigation regarding PowerShell version in Travis continues")]
+        [Fact]
         [Trait(Category.AcceptanceType, Category.CheckIn)]
         public void TestWindowsContainerWebAppCanIssuePSSession()
         {
@@ -149,6 +156,13 @@ namespace Microsoft.Azure.Commands.Websites.Test.ScenarioTests
         public void TestWindowsContainerWebAppPSSessionOpened()
         {
             WebsitesController.NewInstance.RunPsTest(_logger, "Test-WindowsContainerWebAppPSSessionOpened");
+        }
+
+        [Fact]
+        [Trait(Category.AcceptanceType, Category.CheckIn)]
+        public void TestTagsNotRemovedBySetWebApp()
+        {
+            WebsitesController.NewInstance.RunPsTest(_logger, "Test-TagsNotRemovedBySetWebApp");
         }
     }
 }

@@ -22,10 +22,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Management.Automation;
 using MNM = Microsoft.Azure.Management.Network.Models;
+using Microsoft.Azure.Commands.Network.VirtualNetworkGateway;
+using System.Collections;
 
 namespace Microsoft.Azure.Commands.Network
 {
-    [Cmdlet("Set", ResourceManager.Common.AzureRMConstants.AzureRMPrefix + "VirtualNetworkGatewayConnection", SupportsShouldProcess = true),OutputType(typeof(PSVirtualNetworkGatewayConnection))]
+    [Cmdlet("Set", ResourceManager.Common.AzureRMConstants.AzureRMPrefix + "VirtualNetworkGatewayConnection", DefaultParameterSetName = VirtualNetworkGatewayParameterSets.Default, SupportsShouldProcess = true),OutputType(typeof(PSVirtualNetworkGatewayConnection))]
     public class SetAzureVirtualNetworkGatewayConnectionCommand : VirtualNetworkGatewayConnectionBaseCmdlet
     {
         [Parameter(
@@ -52,8 +54,14 @@ namespace Microsoft.Azure.Commands.Network
         public PSIpsecPolicy[] IpsecPolicies { get; set; }
 
         [Parameter(
+            Mandatory = true,
+            ParameterSetName = VirtualNetworkGatewayParameterSets.UpdateResourceWithTags,
+            HelpMessage = "A hashtable which represents resource tags.")]
+        public Hashtable Tag { get; set; }
+
+        [Parameter(
            Mandatory = false,
-           HelpMessage = "Do not ask for confirmation if you want to overrite a resource")]
+           HelpMessage = "Do not ask for confirmation if you want to overwrite a resource")]
         public SwitchParameter Force { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Run cmdlet in the background")]
@@ -91,7 +99,12 @@ namespace Microsoft.Azure.Commands.Network
                     }
 
                     var vnetGatewayConnectionModel = NetworkResourceManagerProfile.Mapper.Map<MNM.VirtualNetworkGatewayConnection>(this.VirtualNetworkGatewayConnection);
-                    vnetGatewayConnectionModel.Tags = TagsConversionHelper.CreateTagDictionary(this.VirtualNetworkGatewayConnection.Tag, validate: true);
+                    
+                    vnetGatewayConnectionModel.Tags =
+                        ParameterSetName.Equals(VirtualNetworkGatewayParameterSets.UpdateResourceWithTags) ?
+                        TagsConversionHelper.CreateTagDictionary(this.Tag, validate: true) :
+                        TagsConversionHelper.CreateTagDictionary(this.VirtualNetworkGatewayConnection.Tag, validate: true);
+
                     this.VirtualNetworkGatewayConnectionClient.CreateOrUpdate(
                         this.VirtualNetworkGatewayConnection.ResourceGroupName,
                         this.VirtualNetworkGatewayConnection.Name, vnetGatewayConnectionModel);

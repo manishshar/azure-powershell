@@ -1,4 +1,4 @@
-﻿---
+---
 external help file: Microsoft.Azure.PowerShell.Cmdlets.Network.dll-Help.xml
 Module Name: Az.Network
 ms.assetid: 46FDE4D8-08E0-4465-8BF9-849A108628B8
@@ -198,15 +198,11 @@ Accept wildcard characters: False
 
 ### -RuleSetVersion
 The version of the rule set type.
-The acceptable values for this parameter are: 
-- 3.0
-- 2.2.9
 
 ```yaml
 Type: System.String
 Parameter Sets: (All)
 Aliases:
-Accepted values: 3.0, 2.2.9
 
 Required: False
 Position: Named

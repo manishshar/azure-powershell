@@ -31,10 +31,14 @@ Gets the values of the parameters used at the blob auditing tests
 #>
 function Get-SqlBlobAuditingTestEnvironmentParameters ($testSuffix)
 {
+	$subscriptionId = (Get-AzContext).Subscription.Id
 	return @{ rgname = "blob-audit-cmdlet-test-rg" + $testSuffix;
 			  serverName = "blob-audit-cmdlet-server" + $testSuffix;
 			  databaseName = "blob-audit-cmdlet-db" + $testSuffix;
 			  storageAccount = "blobaudit" + $testSuffix
+			  eventHubNamespace = "audit-cmdlet-event-hub-ns" + $testSuffix
+			  workspaceName = "audit-cmdlet-workspace" +$testSuffix
+			  storageAccountResourceId = "/subscriptions/" + $subscriptionId + "/resourceGroups/" + "blob-audit-cmdlet-test-rg" + $testSuffix + "/providers/Microsoft.Storage/storageAccounts/" + "blobaudit" + $testSuffix
 		}
 }
 
@@ -91,6 +95,8 @@ function Create-BlobAuditingTestEnvironment ($testSuffix, $location = "West Cent
 {
 	$params = Get-SqlBlobAuditingTestEnvironmentParameters $testSuffix
 	Create-TestEnvironmentWithParams $params $location $serverVersion
+	New-AzOperationalInsightsWorkspace -ResourceGroupName $params.rgname -Name $params.workspaceName -Sku "Standard" -Location "eastus"
+	New-AzEventHubNamespace -ResourceGroupName $params.rgname -NamespaceName $params.eventHubNamespace -Location $location
 }
 
 <#
@@ -140,8 +146,19 @@ Creates the test environment needed to perform the Sql auditing tests
 function Create-TestEnvironmentWithParams ($params, $location, $serverVersion)
 {
 	Create-BasicTestEnvironmentWithParams $params $location $serverVersion
-	New-AzureRmStorageAccount -StorageAccountName $params.storageAccount -ResourceGroupName $params.rgname -Location $location -Type Standard_GRS
+	New-AzStorageAccount -StorageAccountName $params.storageAccount -ResourceGroupName $params.rgname -Location $location -Type Standard_GRS
 	Wait-Seconds 10
+}
+
+<#
+.SYNOPSIS
+Creates the test environment needed to perform the Sql vulnerability assessment tests on managed instance
+#>
+function Create-InstanceTestEnvironmentWithParams ($params, $location)
+{
+	Create-BasicManagedTestEnvironmentWithParams $params $location
+
+	New-AzureRmStorageAccount -StorageAccountName $params.storageAccount -ResourceGroupName $params.rgname -Location $location -Type Standard_GRS
 }
 
 <#
@@ -153,7 +170,7 @@ function Create-ClassicTestEnvironmentWithParams ($params, $location, $serverVer
 	Create-BasicTestEnvironmentWithParams $params $location $serverVersion
 	try
 	{
-		New-AzureRmResource -ResourceName $params.storageAccount -ResourceGroupName $params.rgname -ResourceType "Microsoft.ClassicStorage/StorageAccounts" -Location $location -Properties @{ AccountType = "Standard_GRS" } -ApiVersion "2014-06-01" -Force
+		New-AzResource -ResourceName $params.storageAccount -ResourceGroupName $params.rgname -ResourceType "Microsoft.ClassicStorage/StorageAccounts" -Location $location -Properties @{ AccountType = "Standard_GRS" } -ApiVersion "2014-06-01" -Force
 	}
 	catch
 	{
@@ -167,14 +184,41 @@ Creates the basic test environment needed to perform the Sql data security tests
 #>
 function Create-BasicTestEnvironmentWithParams ($params, $location, $serverVersion)
 {
-	New-AzureRmResourceGroup -Name $params.rgname -Location $location
+	New-AzResourceGroup -Name $params.rgname -Location $location
 	$serverName = $params.serverName
 	$serverLogin = "testusername"
 	<#[SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Test passwords only valid for the duration of the test")]#>
 	$serverPassword = "t357ingP@s5w0rd!Sec"
 	$credentials = new-object System.Management.Automation.PSCredential($serverLogin, ($serverPassword | ConvertTo-SecureString -asPlainText -Force))
-	New-AzureRmSqlServer -ResourceGroupName $params.rgname -ServerName $params.serverName -Location $location -ServerVersion $serverVersion -SqlAdministratorCredentials $credentials
-	New-AzureRmSqlDatabase -DatabaseName $params.databaseName -ResourceGroupName $params.rgname -ServerName $params.serverName -Edition Basic
+	New-AzSqlServer -ResourceGroupName $params.rgname -ServerName $params.serverName -Location $location -ServerVersion $serverVersion -SqlAdministratorCredentials $credentials
+	New-AzSqlDatabase -DatabaseName $params.databaseName -ResourceGroupName $params.rgname -ServerName $params.serverName -Edition Basic
+}
+
+<#
+.SYNOPSIS
+Creates the basic test environment needed to perform the Sql data security tests - resource group, managed instance and managed database
+#>
+function Create-BasicManagedTestEnvironmentWithParams ($params, $location)
+{
+	New-AzureRmResourceGroup -Name $params.rgname -Location $location
+	
+	# Setup VNET 
+	$vnetName = "cl_initial"
+	$subnetName = "Cool"
+	$virtualNetwork1 = CreateAndGetVirtualNetworkForManagedInstance $vnetName $subnetName
+	$subnetId = $virtualNetwork1.Subnets.where({ $_.Name -eq $subnetName })[0].Id
+	$credentials = Get-ServerCredential
+ 	$licenseType = "BasePrice"
+  	$storageSizeInGB = 32
+ 	$vCore = 16
+ 	$skuName = "GP_Gen4"
+	$collation = "SQL_Latin1_General_CP1_CI_AS"
+
+	$managedInstance = New-AzureRmSqlInstance -ResourceGroupName $params.rgname -Name $params.serverName `
+ 			-Location $location -AdministratorCredential $credentials -SubnetId $subnetId `
+  			-Vcore $vCore -SkuName $skuName
+
+	New-AzureRmSqlInstanceDatabase -ResourceGroupName $params.rgname -InstanceName $params.serverName -Name $params.databaseName -Collation $collation
 }
 
 <#
@@ -187,10 +231,10 @@ function Create-DataMaskingTestEnvironment ($testSuffix)
 	$password = $params.pwd
     $secureString = ($password | ConvertTo-SecureString -asPlainText -Force)
     $credentials = new-object System.Management.Automation.PSCredential($params.loginName, $secureString)
-	New-AzureRmResourceGroup -Name $params.rgname -Location "West Central US"
-    New-AzureRmSqlServer -ResourceGroupName  $params.rgname -ServerName $params.serverName -ServerVersion "12.0" -Location "West Central US" -SqlAdministratorCredentials $credentials
-	New-AzureRmSqlServerFirewallRule -ResourceGroupName  $params.rgname -ServerName $params.serverName -StartIpAddress 0.0.0.0 -EndIpAddress 255.255.255.255 -FirewallRuleName "ddmRule"
-	New-AzureRmSqlDatabase -ResourceGroupName $params.rgname -ServerName $params.serverName -DatabaseName $params.databaseName
+	New-AzResourceGroup -Name $params.rgname -Location "West Central US"
+    New-AzSqlServer -ResourceGroupName  $params.rgname -ServerName $params.serverName -ServerVersion "12.0" -Location "West Central US" -SqlAdministratorCredentials $credentials
+	New-AzSqlServerFirewallRule -ResourceGroupName  $params.rgname -ServerName $params.serverName -StartIpAddress 0.0.0.0 -EndIpAddress 255.255.255.255 -FirewallRuleName "ddmRule"
+	New-AzSqlDatabase -ResourceGroupName $params.rgname -ServerName $params.serverName -DatabaseName $params.databaseName
 	
 	if ([Microsoft.Azure.Test.HttpRecorder.HttpMockServer]::Mode -eq "Record")
 	{
@@ -263,14 +307,15 @@ Gets the values of the parameters used in the Server Key Vault Key tests
 #>
 function Get-SqlServerKeyVaultKeyTestEnvironmentParameters ()
 {
+	# Create a key vault with soft delete.configured
 	return @{ rgName = Get-ResourceGroupName;
 			  serverName = Get-ServerName;
 			  databaseName = Get-DatabaseName;
-			  keyId = "https://akvtdekeyvault.vault.azure.net/keys/key1/51c2fab9ff3c4a17aab4cd51b932b106";
-			  serverKeyName = "akvtdekeyvault_key1_51c2fab9ff3c4a17aab4cd51b932b106";
-			  vaultName = "akvtdekeyvault";
+			  keyId = "https://akvtdekeyvaultcl.vault.azure.net/keys/key1/738a177a3b0d45e98d366fdf738840e8";
+			  serverKeyName = "akvtdekeyvaultcl_key1_738a177a3b0d45e98d366fdf738840e8";
+			  vaultName = "akvtdekeyvaultcl";
 			  keyName = "key1"
-			  location = "southeastasia";
+			  location = "westcentralus";
 			  }
 }
 
@@ -281,22 +326,47 @@ Creates the test environment needed to perform the Server Key Vault Key tests
 function Create-ServerKeyVaultKeyTestEnvironment ($params)
 {
 	# Create Resource Group
-	$rg = New-AzureRmResourceGroup -Name $params.rgname -Location $params.location -Force
+	$rg = New-AzResourceGroup -Name $params.rgname -Location $params.location -Force
 
 	# Create Server
 	$serverLogin = "testusername"
 	<#[SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Test passwords only valid for the duration of the test")]#>
 	$serverPassword = "t357ingP@s5w0rd!"
 	$credentials = new-object System.Management.Automation.PSCredential($serverLogin, ($serverPassword | ConvertTo-SecureString -asPlainText -Force))
-	$server = New-AzureRmSqlServer -ResourceGroupName  $rg.ResourceGroupName -ServerName $params.serverName -Location $params.location -ServerVersion "12.0" -SqlAdministratorCredentials $credentials
+	$server = New-AzSqlServer -ResourceGroupName  $rg.ResourceGroupName -ServerName $params.serverName -Location $params.location -ServerVersion "12.0" -SqlAdministratorCredentials $credentials -AssignIdentity
 	Assert-AreEqual $server.ServerName $params.serverName
 
 	# Create database
-	$db = New-AzureRmSqlDatabase -ResourceGroupName $rg.ResourceGroupName -ServerName $server.ServerName -DatabaseName $params.databaseName
+	$db = New-AzSqlDatabase -ResourceGroupName $rg.ResourceGroupName -ServerName $server.ServerName -DatabaseName $params.databaseName
 	Assert-AreEqual $db.DatabaseName $params.databaseName
+
+	#Set permissions on key Vault
+	Set-AzKeyVaultAccessPolicy -VaultName $params.vaultName -ObjectId $server.Identity.PrincipalId -PermissionsToKeys get, list, wrapKey, unwrapKey
 
 	# Return the created resource group
 	return $rg
+}
+
+
+<#
+.SYNOPSIS
+Creates test managed instance
+#>
+function Get-ManagedInstanceForTdeTest ($params)
+{
+	# Setup
+	$rg = Create-ResourceGroupForTest
+	$vnetName = "cl_initial"
+	$subnetName = "Cool"
+	
+	# Setup VNET 
+	$virtualNetwork1 = CreateAndGetVirtualNetworkForManagedInstance $vnetName $subnetName $rg.Location
+	$subnetId = $virtualNetwork1.Subnets.where({ $_.Name -eq $subnetName })[0].Id
+	
+	$managedInstance = Create-ManagedInstanceForTest $rg $subnetId
+	Set-AzKeyVaultAccessPolicy -VaultName $params.vaultName -ObjectId $managedInstance.Identity.PrincipalId -PermissionsToKeys get, list, wrapKey, unwrapKey
+
+	return $managedInstance
 }
 
 <#
@@ -420,7 +490,7 @@ function Get-ProviderLocation($provider)
 		if($provider.Contains("/"))
 		{
 			$type = $provider.Substring($namespace.Length + 1)
-			$location = Get-AzureRmResourceProvider -ProviderNamespace $namespace | where {$_.ResourceTypes[0].ResourceTypeName -eq $type}
+			$location = Get-AzResourceProvider -ProviderNamespace $namespace | where {$_.ResourceTypes[0].ResourceTypeName -eq $type}
 
 			if ($location -eq $null)
 			{
@@ -446,7 +516,7 @@ function Create-ResourceGroupForTest ($location = "westcentralus")
 {
 	$rgName = Get-ResourceGroupName
 
-	$rg = New-AzureRmResourceGroup -Name $rgName -Location $location
+	$rg = New-AzResourceGroup -Name $rgName -Location $location
 
 	return $rg
 }
@@ -457,7 +527,7 @@ function Create-ResourceGroupForTest ($location = "westcentralus")
 #>
 function Remove-ResourceGroupForTest ($rg)
 {
-	Remove-AzureRmResourceGroup -Name $rg.ResourceGroupName -Force
+	Remove-AzResourceGroup -Name $rg.ResourceGroupName -Force
 }
 
 <#
@@ -482,7 +552,7 @@ function Create-ServerForTest ($resourceGroup, $location = "Japan East")
 	$serverName = Get-ServerName
 	$credentials = Get-ServerCredential
 
-	$server = New-AzureRmSqlServer -ResourceGroupName  $resourceGroup.ResourceGroupName -ServerName $serverName -Location $location -SqlAdministratorCredentials $credentials
+	$server = New-AzSqlServer -ResourceGroupName  $resourceGroup.ResourceGroupName -ServerName $serverName -Location $location -SqlAdministratorCredentials $credentials
 	return $server
 }
 
@@ -492,7 +562,7 @@ function Create-ServerForTest ($resourceGroup, $location = "Japan East")
 #>
 function Remove-ServerForTest ($server)
 {
-	$server | Remove-AzureRmSqlServer -Force
+	$server | Remove-AzSqlServer -Force
 }
 
 <#
@@ -502,7 +572,7 @@ Removes the test environment that was needed to perform the Sql threat detection
 function Remove-ThreatDetectionTestEnvironment ($testSuffix)
 {
 	$params = Get-SqlThreatDetectionTestEnvironmentParameters $testSuffix
-	Remove-AzureRmResourceGroup -Name $params.rgname -Force
+	Remove-AzResourceGroup -Name $params.rgname -Force
 }
 
 <#
@@ -512,7 +582,7 @@ Removes the test environment that was needed to perform the Sql auditing tests
 function Remove-AuditingTestEnvironment ($testSuffix)
 {
 	$params = Get-SqlAuditingTestEnvironmentParameters $testSuffix
-	Remove-AzureRmResourceGroup -Name $params.rgname -Force
+	Remove-AzResourceGroup -Name $params.rgname -Force
 }
 
 <#
@@ -522,7 +592,7 @@ Removes the test environment that was needed to perform the Sql blob auditing te
 function Remove-BlobAuditingTestEnvironment ($testSuffix)
 {
 	$params = Get-SqlBlobAuditingTestEnvironmentParameters $testSuffix
-	Remove-AzureRmResourceGroup -Name $params.rgname -Force
+	Remove-AzResourceGroup -Name $params.rgname -Force
 }
 
 <#
@@ -532,7 +602,7 @@ Removes the test environment that was needed to perform the Sql data masking tes
 function Remove-DataMaskingTestEnvironment ($testSuffix)
 {
 	$params = Get-SqlDataMaskingTestEnvironmentParameters $testSuffix
-	Remove-AzureRmResourceGroup -Name $params.rgname -Force
+	Remove-AzResourceGroup -Name $params.rgname -Force
 }
 
 <#
@@ -658,14 +728,12 @@ function Create-ManagedInstanceForTest ($resourceGroup, $subnetId)
 {
 	$managedInstanceName = Get-ManagedInstanceName
 	$credentials = Get-ServerCredential
- 	$licenseType = "BasePrice"
-  	$storageSizeInGB = 32
  	$vCore = 16
  	$skuName = "GP_Gen4"
 
-	$managedInstance = New-AzureRmSqlInstance -ResourceGroupName $resourceGroup.ResourceGroupName -Name $managedInstanceName `
+	$managedInstance = New-AzSqlInstance -ResourceGroupName $resourceGroup.ResourceGroupName -Name $managedInstanceName `
  			-Location $resourceGroup.Location -AdministratorCredential $credentials -SubnetId $subnetId `
-  			-LicenseType $licenseType -StorageSizeInGB $storageSizeInGB -Vcore $vCore -SkuName $skuName
+  			-Vcore $vCore -SkuName $skuName -AssignIdentity
 
 	return $managedInstance
 }
@@ -673,47 +741,51 @@ function Create-ManagedInstanceForTest ($resourceGroup, $subnetId)
 <#
 	.SYNOPSIS
 	Create a virtual network
+
+	If resource group $resourceGroupName does not exist, then please create it before running the test.
+	We deliberately do not create it, because if we did then ResourceGroupCleaner (inside MockContext) would delete it
+	at the end of the test, which prevents us from reusing the subnet and therefore massively slows down
+	managed instance scenario tests.
 #>
-function CreateAndGetVirtualNetworkForManagedInstance ($vnetName, $subnetName, $location = "westcentralus")
+function CreateAndGetVirtualNetworkForManagedInstance ($vnetName, $subnetName, $location = "westcentralus", $resourceGroupName = "cl_one")
 {
 	$vNetAddressPrefix = "10.0.0.0/16"
-	$defaultResourceGroupName = "cl_one"
 	$defaultSubnetAddressPrefix = "10.0.0.0/24"
 
 	try {
-		$getVnet = Get-AzureRmVirtualNetwork -Name $vnetName -ResourceGroupName $defaultResourceGroupName
+		$getVnet = Get-AzVirtualNetwork -Name $vnetName -ResourceGroupName $resourceGroupName
 		return $getVnet
 	} catch {
-		$virtualNetwork = New-AzureRmVirtualNetwork `
-							-ResourceGroupName $defaultResourceGroupName `
+		$virtualNetwork = New-AzVirtualNetwork `
+							-ResourceGroupName $resourceGroupName `
 							-Location $location `
 							-Name $vNetName `
 							-AddressPrefix $vNetAddressPrefix
- 		$subnetConfig = Add-AzureRmVirtualNetworkSubnetConfig `
+ 		$subnetConfig = Add-AzVirtualNetworkSubnetConfig `
 								-Name $subnetName `
 								-AddressPrefix $defaultSubnetAddressPrefix `
 								-VirtualNetwork $virtualNetwork
- 		$virtualNetwork | Set-AzureRmVirtualNetwork
- 		$routeTableMiManagementService = New-AzureRmRouteTable `
+ 		$virtualNetwork | Set-AzVirtualNetwork
+ 		$routeTableMiManagementService = New-AzRouteTable `
 								-Name 'myRouteTableMiManagementService' `
-								-ResourceGroupName $defaultResourceGroupName `
+								-ResourceGroupName $resourceGroupName `
 								-location $location
- 		Set-AzureRmVirtualNetworkSubnetConfig `
+ 		Set-AzVirtualNetworkSubnetConfig `
 								-VirtualNetwork $virtualNetwork `
 								-Name $subnetName `
 								-AddressPrefix $defaultSubnetAddressPrefix `
 								-RouteTable $routeTableMiManagementService | `
-							Set-AzureRmVirtualNetwork
- 		Get-AzureRmRouteTable `
-								-ResourceGroupName $defaultResourceGroupName `
+							Set-AzVirtualNetwork
+ 		Get-AzRouteTable `
+								-ResourceGroupName $resourceGroupName `
 								-Name "myRouteTableMiManagementService" `
-								| Add-AzureRmRouteConfig `
+								| Add-AzRouteConfig `
 								-Name "ToManagedInstanceManagementService" `
 								-AddressPrefix 0.0.0.0/0 `
 								-NextHopType "Internet" `
-								| Set-AzureRmRouteTable
+								| Set-AzRouteTable
 
-		$getVnet = Get-AzureRmVirtualNetwork -Name $vnetName -ResourceGroupName $defaultResourceGroupName
+		$getVnet = Get-AzVirtualNetwork -Name $vnetName -ResourceGroupName $resourceGroupName
 		return $getVnet
 	}
 }

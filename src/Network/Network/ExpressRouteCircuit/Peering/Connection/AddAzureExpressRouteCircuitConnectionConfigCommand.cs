@@ -13,12 +13,14 @@
 // ----------------------------------------------------------------------------------
 
 using Microsoft.Azure.Commands.Network.Models;
+using Microsoft.WindowsAzure.Commands.Common.CustomAttributes;
 using System;
 using System.Linq;
 using System.Management.Automation;
 
 namespace Microsoft.Azure.Commands.Network
 {
+    [CmdletOutputBreakingChange(typeof(PSExpressRouteCircuit), DeprecatedOutputProperties = new[] { "AllowGlobalReach" })]
     [Cmdlet("Add", ResourceManager.Common.AzureRMConstants.AzureRMPrefix + "ExpressRouteCircuitConnectionConfig", DefaultParameterSetName = "SetByResource", SupportsShouldProcess = true), OutputType(typeof(PSExpressRouteCircuit))]
     public class AddAzureExpressRouteCircuitConnectionConfigCommand : AzureExpressRouteCircuitConnectionConfigBase
     {
@@ -47,7 +49,7 @@ namespace Microsoft.Azure.Commands.Network
             circuitconnection.AddressPrefix = this.AddressPrefix;
 
             var peering =
-                    this.ExpressRouteCircuit.Peerings.First(
+                    this.ExpressRouteCircuit.Peerings.SingleOrDefault(
                         resource =>
                             string.Equals(resource.Name, "AzurePrivatePeering", System.StringComparison.CurrentCultureIgnoreCase));
 

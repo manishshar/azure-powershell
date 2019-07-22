@@ -18,7 +18,7 @@ Run simple query
 #>
 function Search-AzureRmGraph-Query
 {
-	$queryResult = Search-AzureRmGraph "project id, tags, properties | limit 2"
+	$queryResult = Search-AzGraph "project id, tags, properties | limit 2"
 
 	Assert-IsInstance $queryResult Object[]
 	Assert-AreEqual $queryResult.Count 2
@@ -51,7 +51,7 @@ Run paged query
 function Search-AzureRmGraph-PagedQuery
 {
 	# Page size was artificially set to 2 rows
-	$queryResult = Search-AzureRmGraph "project id" -First 3 -Skip 2
+	$queryResult = Search-AzGraph "project id" -First 3 -Skip 2
 
 	Assert-IsInstance $queryResult Object[]
 	Assert-AreEqual $queryResult.Count 3
@@ -88,9 +88,9 @@ function Search-AzureRmGraph-Subscriptions
 	$mockedSubscriptionId = "00000000-0000-0000-0000-000000000000"
 	$query = "distinct subscriptionId | order by subscriptionId asc"
 
-	$queryResultNoSubs = Search-AzureRmGraph $query
-	$queryResultOneSub = Search-AzureRmGraph $query -Subscription $testSubId1
-	$queryResultMultipleSubs = Search-AzureRmGraph $query -Subscription @($testSubId1, $testSubId2)
+	$queryResultNoSubs = Search-AzGraph $query
+	$queryResultOneSub = Search-AzGraph $query -Subscription $testSubId1
+	$queryResultMultipleSubs = Search-AzGraph $query -Subscription @($testSubId1, $testSubId2)
 
 	Assert-IsInstance $queryResultNoSubs System.Management.Automation.PSCustomObject
 	Assert-AreEqual $queryResultNoSubs.subscriptionId $mockedSubscriptionId
@@ -130,7 +130,7 @@ function Search-AzureRmGraph-QueryError
 
 	try
 	{
-		Search-AzureRmGraph "where where"
+		Search-AzGraph "where where"
 		Assert-True $false  # Expecting an error
 	}
 	catch [Exception]
@@ -149,5 +149,29 @@ function Search-AzureRmGraph-QueryError
 		Assert-NotNull $PSItem.Exception.Body.Error.Details[0].Message
 		Assert-NotNull $PSItem.Exception.Body.Error.Details[0].AdditionalProperties
 		Assert-AreEqual $PSItem.Exception.Body.Error.Details[0].AdditionalProperties.Count 4
+	}
+}
+
+<#
+.SYNOPSIS
+Run query with no subscriptions
+#>
+function Search-AzureRmGraph-SubscriptionQueryError
+{
+	$expectedErrorId = '400,' + [Microsoft.Azure.Commands.ResourceGraph.Cmdlets.SearchAzureRmGraph].FullName
+	$expectedErrorMessage = 
+	'No subscriptions were found to run query. Please try to add them implicitly as param to your request (e.g. Search-AzGraph -Query '''' -Subscription ''11111111-1111-1111-1111-111111111111'')'
+
+ 	try
+	{
+		Search-AzGraph "project id, type" -Subscription @()
+		Assert-True $false  # Expecting an error
+	}
+	catch [Exception]
+	{
+	    Assert-AreEqual $expectedErrorId $PSItem.FullyQualifiedErrorId
+		Assert-AreEqual $expectedErrorMessage $PSItem.Exception.Message
+
+		Assert-IsInstance $PSItem.Exception System.ArgumentException
 	}
 }

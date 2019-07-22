@@ -12,19 +12,6 @@
 # limitations under the License.
 # ----------------------------------------------------------------------------------
 
-# Snapshots require a Premium app to exist for several hours.
-# Deploy a Premium app and update these global variables to re-record the snapshots tests.
-$snapshotRgName = 'onesdksnapshots'
-$snapshotAppName = 'onesdkpremapp2'
-$snapshotAppSlot = 'staging'
-
-# Restoring a deleted web app requires an app to have a snapshot available.
-# Deploy a web app and wait at least an hour for a snapshot.
-# Update these global variables to re-record Test-RestoreDeletedWebApp.
-$undeleteRgName = 'ps8425'
-$undeleteAppName = 'ps1705'
-$undeleteSlot = 'testslot'
-
 # !!! Storage keys and SAS URIs will be stored in the backup test recordings !!!
 # To find them, open the json files in a text editor and search for "listkeys"
 # to find the storage keys. Search for StorageAccountUrl to find the SAS URIs.
@@ -47,7 +34,7 @@ function Test-CreateNewWebAppBackup
         $app = Create-TestWebApp $rgName $location $whpName $tier $wName
         $sasUri = Create-TestStorageAccount $rgName $location $stoName $stoType $stoContainerName
         # Create a backup of the web app
-        $result = New-AzureRmWebAppBackup -ResourceGroupName $rgName -Name $wName -StorageAccountUrl $sasUri -BackupName $backupName 
+        $result = New-AzWebAppBackup -ResourceGroupName $rgName -Name $wName -StorageAccountUrl $sasUri -BackupName $backupName 
 
         # Assert
         Assert-AreEqual $backupName $result.BackupName
@@ -56,10 +43,10 @@ function Test-CreateNewWebAppBackup
     finally
     {
         # Cleanup
-        Remove-AzureRmStorageAccount -ResourceGroupName $rgName -Name $stoName
-        Remove-AzureRmWebApp -ResourceGroupName $rgName -Name $wName -Force
-        Remove-AzureRmAppServicePlan -ResourceGroupName $rgName -Name  $whpName -Force
-        Remove-AzureRmResourceGroup -Name $rgName -Force
+        Remove-AzStorageAccount -ResourceGroupName $rgName -Name $stoName
+        Remove-AzWebApp -ResourceGroupName $rgName -Name $wName -Force
+        Remove-AzAppServicePlan -ResourceGroupName $rgName -Name  $whpName -Force
+        Remove-AzResourceGroup -Name $rgName -Force
     }
 }
 
@@ -82,7 +69,7 @@ function Test-CreateNewWebAppBackupPiping
         $app = Create-TestWebApp $rgName $location $whpName $tier $wName
         $sasUri = Create-TestStorageAccount $rgName $location $stoName $stoType $stoContainerName
         # Create a backup of the web app
-        $backup = $app | New-AzureRmWebAppBackup -StorageAccountUrl $sasUri -BackupName $backupName
+        $backup = $app | New-AzWebAppBackup -StorageAccountUrl $sasUri -BackupName $backupName
 
         # Assert
         Assert-AreEqual $backupName $backup.BackupName
@@ -92,13 +79,13 @@ function Test-CreateNewWebAppBackupPiping
 		while (($backup.BackupStatus -like "Created" -or $backup.BackupStatus -like "InProgress") -and $count -le 20)
 		{
 			Wait-Seconds 30
-		    $backup = $backup | Get-AzureRmWebAppBackup
+		    $backup = $backup | Get-AzWebAppBackup
 			$count++
 		}
 
         # Test that it's possible to modify the return value of the cmdlet to make a new backup
         $backup.BackupName = $backupName2
-        $backup2 = $backup | New-AzureRmWebAppBackup
+        $backup2 = $backup | New-AzWebAppBackup
 
         # Assert
         Assert-AreEqual $backupName2 $backup2.BackupName
@@ -107,10 +94,10 @@ function Test-CreateNewWebAppBackupPiping
     finally
     {
         # Cleanup
-        Remove-AzureRmStorageAccount -ResourceGroupName $rgName -Name $stoName
-        Remove-AzureRmWebApp -ResourceGroupName $rgName -Name $wName -Force
-        Remove-AzureRmAppServicePlan -ResourceGroupName $rgName -Name  $whpName -Force
-        Remove-AzureRmResourceGroup -Name $rgName -Force
+        Remove-AzStorageAccount -ResourceGroupName $rgName -Name $stoName
+        Remove-AzWebApp -ResourceGroupName $rgName -Name $wName -Force
+        Remove-AzAppServicePlan -ResourceGroupName $rgName -Name  $whpName -Force
+        Remove-AzResourceGroup -Name $rgName -Force
     }
 }
 
@@ -133,10 +120,10 @@ function Test-GetWebAppBackup
         $sasUri = Create-TestStorageAccount $rgName $location $stoName $stoType $stoContainerName
 
         # Create a backup of the web app
-        $newBackup = New-AzureRmWebAppBackup -ResourceGroupName $rgName -Name $wName -StorageAccountUrl $sasUri -BackupName $backupName
+        $newBackup = New-AzWebAppBackup -ResourceGroupName $rgName -Name $wName -StorageAccountUrl $sasUri -BackupName $backupName
 
         # Get the backup
-        $result = Get-AzureRmWebAppBackup -ResourceGroupName $rgName -Name $wName -BackupId $newBackup.BackupId
+        $result = Get-AzWebAppBackup -ResourceGroupName $rgName -Name $wName -BackupId $newBackup.BackupId
 
         # Assert
         Assert-AreEqual $backupName $result.BackupName
@@ -144,7 +131,7 @@ function Test-GetWebAppBackup
         Assert-NotNull $result.BackupId
 
         # Test piping - should be able to pipe result of previous get backup and get the same backup
-        $pipeResult = $result | Get-AzureRmWebAppBackup
+        $pipeResult = $result | Get-AzWebAppBackup
 
         Assert-AreEqual $backupName $pipeResult.BackupName
         Assert-AreEqual $result.StorageAccountUrl $pipeResult.StorageAccountUrl 
@@ -153,10 +140,10 @@ function Test-GetWebAppBackup
     finally
     {
         # Cleanup
-        Remove-AzureRmStorageAccount -ResourceGroupName $rgName -Name $stoName
-        Remove-AzureRmWebApp -ResourceGroupName $rgName -Name $wName -Force
-        Remove-AzureRmAppServicePlan -ResourceGroupName $rgName -Name  $whpName -Force
-        Remove-AzureRmResourceGroup -Name $rgName -Force
+        Remove-AzStorageAccount -ResourceGroupName $rgName -Name $stoName
+        Remove-AzWebApp -ResourceGroupName $rgName -Name $wName -Force
+        Remove-AzAppServicePlan -ResourceGroupName $rgName -Name  $whpName -Force
+        Remove-AzResourceGroup -Name $rgName -Force
     }
 }
 
@@ -179,10 +166,10 @@ function Test-GetWebAppBackupList
         $sasUri = Create-TestStorageAccount $rgName $location $stoName $stoType $stoContainerName
         
         # Create a backup of the web app
-        $backup = New-AzureRmWebAppBackup -ResourceGroupName $rgName -Name $wName -StorageAccountUrl $sasUri -BackupName $backupName -Databases $dbBackupSetting
+        $backup = New-AzWebAppBackup -ResourceGroupName $rgName -Name $wName -StorageAccountUrl $sasUri -BackupName $backupName -Databases $dbBackupSetting
 
         # Get a list of the backups
-        $backupList = Get-AzureRmWebAppBackupList -ResourceGroupName $rgName -Name $wName
+        $backupList = Get-AzWebAppBackupList -ResourceGroupName $rgName -Name $wName
         $listBackup = $backupList | where {$_.BackupId -eq $backup.BackupId}
 
         # Assert
@@ -191,7 +178,7 @@ function Test-GetWebAppBackupList
         Assert-AreEqual $backup.BackupName $listBackup.BackupName
 
         # Test piping
-        $pipeBackupList = $app | Get-AzureRmWebAppBackupList
+        $pipeBackupList = $app | Get-AzWebAppBackupList
         $pipeBackup = $pipeBackupList | where {$_.BackupId -eq $backup.BackupId}
 
         # Assert
@@ -202,10 +189,10 @@ function Test-GetWebAppBackupList
     finally
     {
         # Cleanup
-        Remove-AzureRmStorageAccount -ResourceGroupName $rgName -Name $stoName
-        Remove-AzureRmWebApp -ResourceGroupName $rgName -Name $wName -Force
-        Remove-AzureRmAppServicePlan -ResourceGroupName $rgName -Name  $whpName -Force
-        Remove-AzureRmResourceGroup -Name $rgName -Force
+        Remove-AzStorageAccount -ResourceGroupName $rgName -Name $stoName
+        Remove-AzWebApp -ResourceGroupName $rgName -Name $wName -Force
+        Remove-AzAppServicePlan -ResourceGroupName $rgName -Name  $whpName -Force
+        Remove-AzResourceGroup -Name $rgName -Force
     }
 }
 
@@ -232,7 +219,7 @@ function Test-EditAndGetWebAppBackupConfiguration
         $retentionPeriod = 3
 
         # Set the backup configuration
-        $config = Edit-AzureRmWebAppBackupConfiguration `
+        $config = Edit-AzWebAppBackupConfiguration `
             -ResourceGroupName $rgName -Name $wName -StorageAccountUrl $sasUri `
             -FrequencyInterval $frequencyInterval -FrequencyUnit $frequencyUnit `
             -RetentionPeriodInDays $retentionPeriod -StartTime $startTime `
@@ -249,7 +236,7 @@ function Test-EditAndGetWebAppBackupConfiguration
         Assert-NotNull $config.StartTime
 
         # Get the configuration and verify it's the same
-        $getConfig = Get-AzureRmWebAppBackupConfiguration -ResourceGroupName $rgName -Name $wName
+        $getConfig = Get-AzWebAppBackupConfiguration -ResourceGroupName $rgName -Name $wName
 
         # Assert
         Assert-True { $getConfig.Enabled }
@@ -264,10 +251,10 @@ function Test-EditAndGetWebAppBackupConfiguration
     finally
     {
         # Cleanup
-        Remove-AzureRmStorageAccount -ResourceGroupName $rgName -Name $stoName
-        Remove-AzureRmWebApp -ResourceGroupName $rgName -Name $wName -Force
-        Remove-AzureRmAppServicePlan -ResourceGroupName $rgName -Name  $whpName -Force
-        Remove-AzureRmResourceGroup -Name $rgName -Force
+        Remove-AzStorageAccount -ResourceGroupName $rgName -Name $stoName
+        Remove-AzWebApp -ResourceGroupName $rgName -Name $wName -Force
+        Remove-AzAppServicePlan -ResourceGroupName $rgName -Name  $whpName -Force
+        Remove-AzResourceGroup -Name $rgName -Force
     }
 }
 
@@ -294,11 +281,11 @@ function Test-EditAndGetWebAppBackupConfigurationPiping
         $retentionPeriod = 3
 
         # Test piping a web app in
-        $app | Edit-AzureRmWebAppBackupConfiguration `
+        $app | Edit-AzWebAppBackupConfiguration `
             -StorageAccountUrl $sasUri -FrequencyInterval $frequencyInterval `
             -FrequencyUnit $frequencyUnit -RetentionPeriodInDays $retentionPeriod `
             -StartTime $startTime -KeepAtLeastOneBackup
-        $config = $app | Get-AzureRmWebAppBackupConfiguration
+        $config = $app | Get-AzWebAppBackupConfiguration
 
         # Assert
         Assert-True { $config.Enabled }
@@ -317,8 +304,8 @@ function Test-EditAndGetWebAppBackupConfigurationPiping
         $config.FrequencyInterval = $newFrequencyInterval
         $config.RetentionPeriodInDays = $newRetentionPeriod
         $config.FrequencyUnit = $newFrequencyUnit
-        $config | Edit-AzureRmWebAppBackupConfiguration
-        $pipeConfig = $app | Get-AzureRmWebAppBackupConfiguration
+        $config | Edit-AzWebAppBackupConfiguration
+        $pipeConfig = $app | Get-AzWebAppBackupConfiguration
 
         # Assert
         Assert-True { $pipeConfig.Enabled }
@@ -333,57 +320,143 @@ function Test-EditAndGetWebAppBackupConfigurationPiping
     finally
     {
         # Cleanup
-        Remove-AzureRmStorageAccount -ResourceGroupName $rgName -Name $stoName
-        Remove-AzureRmWebApp -ResourceGroupName $rgName -Name $wName -Force
-        Remove-AzureRmAppServicePlan -ResourceGroupName $rgName -Name  $whpName -Force
-        Remove-AzureRmResourceGroup -Name $rgName -Force
+        Remove-AzStorageAccount -ResourceGroupName $rgName -Name $stoName
+        Remove-AzWebApp -ResourceGroupName $rgName -Name $wName -Force
+        Remove-AzAppServicePlan -ResourceGroupName $rgName -Name  $whpName -Force
+        Remove-AzResourceGroup -Name $rgName -Force
     }
 }
 
 function Test-GetWebAppSnapshot
 {
-	# Test named parameters
-	$snapshots = Get-AzureRmWebAppSnapshot -ResourceGroupName $snapshotRgName -Name $snapshotAppName
-	Assert-True { $snapshots.Length -gt 0 }
-	Assert-NotNull $snapshots[0]
-	Assert-NotNull $snapshots[0].SnapshotTime
-	Assert-AreEqual 'Production' $snapshots[0].Slot
+	# Setup
+	$rgname = Get-ResourceGroupName
+	$wname = Get-WebsiteName
+	$slotName = "staging"
+	$location = Get-WebLocation
+	$whpName = Get-WebHostPlanName
+	$tier = "Premium"
+	$isRecordMode = ((Get-WebsitesTestMode) -ne 'Playback')
 
-	# Test positional parameters
-	$snapshots = Get-AzureRmWebAppSnapshot $snapshotRgName  $snapshotAppName
-	Assert-True { $snapshots.Length -gt 0 }
-	Assert-NotNull $snapshots[0]
-	Assert-NotNull $snapshots[0].SnapshotTime
-	Assert-AreEqual 'Production' $snapshots[0].Slot
+	try
+	{
+		New-AzResourceGroup -Name $rgname -Location $location
+		New-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier
+		$app = New-AzWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName 
+		New-AzWebAppSlot -ResourceGroupName $rgname -Name $wname -Slot $slotName
 
-	# Test snapshots for slots
-	$snapshots = Get-AzureRmWebAppSnapshot -ResourceGroupName $snapshotRgName -Name $snapshotAppName -Slot $snapshotAppSlot
-	Assert-True { $snapshots.Length -gt 0 }
-	Assert-NotNull $snapshots[0]
-	Assert-NotNull $snapshots[0].SnapshotTime
-	Assert-AreEqual $snapshotAppSlot $snapshots[0].Slot
+		# Wait for at least 1 snapshot to exist
+		while ($snap -eq $null)
+		{
+			$snap = Get-AzWebAppSnapshot $app
+			if ($isRecordMode)
+			{
+				Start-Sleep -Seconds 60
+			}
+		}
 
-	# Test piping
-	$app = Get-AzureRmWebApp -ResourceGroupName $snapshotRgName -Name $snapshotAppName
-	$snapshots = $app | Get-AzureRmWebAppSnapshot
-	Assert-True { $snapshots.Length -gt 0 }
-	Assert-NotNull $snapshots[0]
-	Assert-NotNull $snapshots[0].SnapshotTime
-	Assert-AreEqual 'Production' $snapshots[0].Slot
+		# Test named parameters
+		$snapshots = Get-AzWebAppSnapshot -ResourceGroupName $rgname -Name $wname -UseDisasterRecovery
+		Assert-True { $snapshots.Length -gt 0 }
+		Assert-NotNull $snapshots[0]
+		Assert-NotNull $snapshots[0].SnapshotTime
+		Assert-AreEqual 'Production' $snapshots[0].Slot
+
+		# Test positional parameters
+		$snapshots = Get-AzWebAppSnapshot $rgname $wname
+		Assert-True { $snapshots.Length -gt 0 }
+		Assert-NotNull $snapshots[0]
+		Assert-NotNull $snapshots[0].SnapshotTime
+		Assert-AreEqual 'Production' $snapshots[0].Slot
+
+		# Test snapshots for slots
+		$snapshots = Get-AzWebAppSnapshot -ResourceGroupName $rgname -Name $wname -Slot $slotName
+		Assert-True { $snapshots.Length -gt 0 }
+		Assert-NotNull $snapshots[0]
+		Assert-NotNull $snapshots[0].SnapshotTime
+		Assert-AreEqual $slotName $snapshots[0].Slot
+
+		# Test piping
+		$app = Get-AzWebApp -ResourceGroupName $rgname -Name $wname
+		$snapshots = $app | Get-AzWebAppSnapshot
+		Assert-True { $snapshots.Length -gt 0 }
+		Assert-NotNull $snapshots[0]
+		Assert-NotNull $snapshots[0].SnapshotTime
+		Assert-AreEqual 'Production' $snapshots[0].Slot
+
+	}
+	finally
+	{
+		# Cleanup
+		Remove-AzWebAppSlot -ResourceGroupName $rgname -Name $wname -Slot $slotName -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $wname -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
+		Remove-AzResourceGroup -Name $rgname -Force
+	}
 }
 
 function Test-RestoreWebAppSnapshot
 {
-	# Test overwrite
-	$snapshot = (Get-AzureRmWebAppSnapshot $snapshotRgName $snapshotAppName)[0]
-	Restore-AzureRmWebAppSnapshot -ResourceGroupName $snapshotRgName -Name $snapshotAppName -InputObject $snapshot -Force -RecoverConfiguration
+	# Setup
+	$rgname = Get-ResourceGroupName
+	$wname = Get-WebsiteName
+	$slotName = "staging"
+	$location = Get-WebLocation
+	$whpName = Get-WebHostPlanName
+	$tier = "Premium"
+	$isRecordMode = ((Get-WebsitesTestMode) -ne 'Playback')
 
-	# Test restore to target slot
-	Restore-AzureRmWebAppSnapshot $snapshotRgName $snapshotAppName $snapshotAppSlot $snapshot -RecoverConfiguration -Force
+	try
+	{
+		New-AzResourceGroup -Name $rgname -Location $location
+		New-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier
+		$app = New-AzWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName 
+		New-AzWebAppSlot -ResourceGroupName $rgname -Name $wname -Slot $slotName
 
-	# Test piping and background job
-	$job = $snapshot | Restore-AzureRmWebAppSnapshot -Force -AsJob
-	$job | Wait-Job
+		# Wait for at least 1 snapshot to exist
+		while ($snap -eq $null)
+		{
+			$snap = Get-AzWebAppSnapshot $app
+			if ($isRecordMode)
+			{
+				Start-Sleep -Seconds 60
+			}
+		}
+
+		# Test overwrite
+		$snapshot = (Get-AzWebAppSnapshot $rgname $wname)[0]
+		Restore-AzWebAppSnapshot -ResourceGroupName $rgname -Name $wname -InputObject $snapshot -Force -RecoverConfiguration
+
+		if ($isRecordMode)
+		{
+			Start-Sleep -Seconds 600
+		}
+
+		# Test restore to target slot
+		Restore-AzWebAppSnapshot $rgname $wname $slotName $snapshot -RecoverConfiguration -UseDisasterRecovery -Force
+
+		if ($isRecordMode)
+		{
+			Start-Sleep -Seconds 600
+		}
+
+		# Test piping and background job
+		$job = $snapshot | Restore-AzWebAppSnapshot -Force -AsJob
+		$job | Wait-Job
+
+		if ($isRecordMode)
+		{
+			Start-Sleep -Seconds 600
+		}
+	}
+	finally
+	{
+		# Cleanup
+		Remove-AzWebAppSlot -ResourceGroupName $rgname -Name $wname -Slot $slotName -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $wname -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
+		Remove-AzResourceGroup -Name $rgname -Force
+	}
 }
 
 function Test-GetDeletedWebApp
@@ -399,19 +472,19 @@ function Test-GetDeletedWebApp
 	try
 	{
 		#Setup
-		New-AzureRmResourceGroup -Name $rgname -Location $location
-		New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier
-		New-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName 
-		New-AzureRmWebAppSlot -ResourceGroupName $rgname -Name $wname -Slot $slotName -AppServicePlan $planName
-		Remove-AzureRmWebAppSlot -ResourceGroupName $rgname -Name $wname -Slot $slotName -Force
-		Remove-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Force
+		New-AzResourceGroup -Name $rgname -Location $location
+		New-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier
+		New-AzWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName 
+		New-AzWebAppSlot -ResourceGroupName $rgname -Name $wname -Slot $slotName
+		Remove-AzWebAppSlot -ResourceGroupName $rgname -Name $wname -Slot $slotName -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $wname -Force
 
-		$deletedApp = Get-AzureRmDeletedWebApp -ResourceGroupName $rgname -Name $wname -Slot "Production"
+		$deletedApp = Get-AzDeletedWebApp -ResourceGroupName $rgname -Name $wname -Slot "Production" -Location $location
 		Assert-NotNull $deletedApp
 		Assert-AreEqual $rgname $deletedApp.ResourceGroupName
 		Assert-AreEqual $wname $deletedApp.Name
 
-		$deletedSlot = Get-AzureRmDeletedWebApp -ResourceGroupName $rgname -Name $wname -Slot $slotName
+		$deletedSlot = Get-AzDeletedWebApp -ResourceGroupName $rgname -Name $wname -Slot $slotName -Location $location
 		Assert-NotNull $deletedSlot
 		Assert-AreEqual $rgname $deletedSlot.ResourceGroupName
 		Assert-AreEqual $wname $deletedSlot.Name
@@ -420,8 +493,8 @@ function Test-GetDeletedWebApp
 	finally
 	{
 		# Cleanup
-		Remove-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
-		Remove-AzureRmResourceGroup -Name $rgname -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
+		Remove-AzResourceGroup -Name $rgname -Force
 	}
 }
 
@@ -432,22 +505,52 @@ function Test-RestoreDeletedWebAppToExisting
 	$wname = Get-WebsiteName
 	$slotName = "staging"
 	$appWithSlotName = "$wname/$slotName"
+	$delName = Get-WebsiteName
+	$delSlot = "testslot"
 	$location = Get-WebLocation
 	$whpName = Get-WebHostPlanName
-	$tier = "Standard"
+	$tier = "Premium"
+	$isRecordMode = ((Get-WebsitesTestMode) -ne 'Playback')
 
 	try
 	{
-		New-AzureRmResourceGroup -Name $rgname -Location $location
-		New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier
-		New-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName 
-		New-AzureRmWebAppSlot -ResourceGroupName $rgname -Name $wname -Slot $slotName -AppServicePlan $planName
+		New-AzResourceGroup -Name $rgname -Location $location
+		New-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier
+		New-AzWebApp -ResourceGroupName $rgname -Name $wname -Location $location -AppServicePlan $whpName 
+		New-AzWebAppSlot -ResourceGroupName $rgname -Name $wname -Slot $slotName
 
-		$deletedApp = Get-AzureRmDeletedWebApp -ResourceGroupName $undeleteRgName -Name $undeleteAppName -Slot "Production"
+		# Make a webapp and delete it once a snapshot is available
+		$tmpApp = New-AzWebApp -ResourceGroupName $rgname -Name $delName -Location $location -AppServicePlan $whpName 
+		New-AzWebAppSlot -ResourceGroupName $rgname -Name $delName -Slot $delSlot
+
+		while ($snap -eq $null)
+		{
+			$snap = Get-AzWebAppSnapshot $tmpApp
+			if ($isRecordMode)
+			{
+				Start-Sleep -Seconds 60
+			}
+		}
+
+		Remove-AzWebAppSlot -ResourceGroupName $rgname -Name $delName -Slot $delSlot -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $delName -Force
+
+		$deletedApp = Get-AzDeletedWebApp -ResourceGroupName $rgname -Name $delName -Slot "Production"
+
 		# Test the InputObject parameter set
-		$restoredApp = Restore-AzureRmDeletedWebApp $deletedApp -TargetResourceGroupName $rgname -TargetName $wname -Force
+		$restoredApp = Restore-AzDeletedWebApp $deletedApp -TargetResourceGroupName $rgname -TargetName $wname -Force
+		if ($isRecordMode) 
+		{
+			# Need extra time for restore operation to resolve globally
+			Start-Sleep -Seconds 900
+		}
+
 		# Test the FromDeletedResourceName parameter set
-		$restoredSlot = Restore-AzureRmDeletedWebApp -ResourceGroupName $undeleteRgName -Name $undeleteAppName -Slot $undeleteSlot -TargetResourceGroupName $rgname -TargetName $wname -TargetSlot $slotName -Force
+		$restoredSlot = Restore-AzDeletedWebApp -ResourceGroupName $rgname -Name $delName -Slot $delSlot -TargetResourceGroupName $rgname -TargetName $wname -TargetSlot $slotName -Force
+		if ($isRecordMode) 
+		{
+			Start-Sleep -Seconds 900
+		}
 
 		Assert-NotNull $restoredApp
 		Assert-AreEqual $rgname $restoredApp.ResourceGroup
@@ -460,10 +563,10 @@ function Test-RestoreDeletedWebAppToExisting
 	finally
 	{
 		# Cleanup
-		Remove-AzureRmWebAppSlot -ResourceGroupName $rgname -Name $wname -Slot $slotName -Force
-		Remove-AzureRmWebApp -ResourceGroupName $rgname -Name $wname -Force
-		Remove-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
-		Remove-AzureRmResourceGroup -Name $rgname -Force
+		Remove-AzWebAppSlot -ResourceGroupName $rgname -Name $wname -Slot $slotName -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $wname -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
+		Remove-AzResourceGroup -Name $rgname -Force
 	}
 }
 
@@ -473,30 +576,52 @@ function Test-RestoreDeletedWebAppToNew
 	$rgname = Get-ResourceGroupName
 	$location = Get-WebLocation
 	$whpName = Get-WebHostPlanName
-	$tier = "Standard"
+	$tier = "Premium"
+	$delName = Get-WebsiteName
+	$isRecordMode = ((Get-WebsitesTestMode) -ne 'Playback')
 
 	try
 	{
 		#Setup
-		New-AzureRmResourceGroup -Name $rgname -Location $location
-		New-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier
-		$deletedApp = Get-AzureRmDeletedWebApp -ResourceGroupName $undeleteRgName -Name $undeleteAppName -Slot "Production"
+		New-AzResourceGroup -Name $rgname -Location $location
+		New-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Location  $location -Tier $tier
+
+		# Make a webapp and delete it once a snapshot is available
+		$tmpApp = New-AzWebApp -ResourceGroupName $rgname -Name $delName -Location $location -AppServicePlan $whpName 
+		while ($snap -eq $null)
+		{
+			$snap = Get-AzWebAppSnapshot $tmpApp
+			if ($isRecordMode)
+			{
+				Start-Sleep -Seconds 60
+			}
+		}
+
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $delName -Force
+		$deletedApp = Get-AzDeletedWebApp -ResourceGroupName $rgname -Name $delName -Slot "Production"
+
 		# Test piping the deleted app
-		$job = $deletedApp | Restore-AzureRmDeletedWebApp -TargetResourceGroupName $rgname -TargetAppServicePlanName $whpName -Force -AsJob
+		$job = $deletedApp | Restore-AzDeletedWebApp -TargetResourceGroupName $rgname -TargetAppServicePlanName $whpName -UseDisasterRecovery -Force -AsJob
 		$result = $job | Wait-Job
 		Assert-AreEqual "Completed" $result.State;
 
 		$restoredApp = $job | Receive-Job
 		Assert-NotNull $restoredApp
 		Assert-AreEqual $rgname $restoredApp.ResourceGroup
-		Assert-AreEqual $undeleteAppName $restoredApp.Name
+		Assert-AreEqual $delName $restoredApp.Name
+
+		if ($isRecordMode) 
+		{
+			# Need extra time for restore operation to resolve globally, or cleanup will be blocked
+			Start-Sleep -Seconds 900
+		}
 	}
 	finally
 	{
 		# Cleanup
-		Remove-AzureRmWebApp -ResourceGroupName $rgname -Name $undeleteAppName -Force
-		Remove-AzureRmAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
-		Remove-AzureRmResourceGroup -Name $rgname -Force
+		Remove-AzWebApp -ResourceGroupName $rgname -Name $delName -Force
+		Remove-AzAppServicePlan -ResourceGroupName $rgname -Name  $whpName -Force
+		Remove-AzResourceGroup -Name $rgname -Force
 	}
 }
 
@@ -512,9 +637,9 @@ function Create-TestWebApp
         [string] $tier,
         [string] $appName
     )
-    New-AzureRmResourceGroup -Name $resourceGroup -Location $location | Out-Null
-    New-AzureRmAppServicePlan -ResourceGroupName $resourceGroup -Name  $hostingPlan -Location  $location -Tier $tier | Out-Null
-    $app = New-AzureRmWebApp -ResourceGroupName $resourceGroup -Name $appName -Location $location -AppServicePlan $hostingPlan 
+    New-AzResourceGroup -Name $resourceGroup -Location $location | Out-Null
+    New-AzAppServicePlan -ResourceGroupName $resourceGroup -Name  $hostingPlan -Location  $location -Tier $tier | Out-Null
+    $app = New-AzWebApp -ResourceGroupName $resourceGroup -Name $appName -Location $location -AppServicePlan $hostingPlan 
     return $app
 }
 
@@ -528,8 +653,8 @@ function Create-TestStorageAccount
         [string] $storageType,
         [string] $stoContainerName
     )
-    New-AzureRmStorageAccount -ResourceGroupName $resourceGroup -Name $storageName -Location $location -Type $storageType | Out-Null
-    $stoKey = (Get-AzureRmStorageAccountKey -ResourceGroupName $resourceGroup -Name $storageName).Key1;
+    New-AzStorageAccount -ResourceGroupName $resourceGroup -Name $storageName -Location $location -Type $storageType | Out-Null
+    $stoKey = (Get-AzStorageAccountKey -ResourceGroupName $resourceGroup -Name $storageName).Key1;
     # 2 hour access duration
     $accessDuration = New-Object -TypeName TimeSpan(2,0,0)
     $permissions = [Microsoft.WindowsAzure.Storage.Blob.SharedAccessBlobPermissions]::Write -bor
